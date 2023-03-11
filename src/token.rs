@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug)]
 pub enum TokenType {
     // Single-character tokens.
@@ -49,9 +51,21 @@ pub enum TokenType {
     Eof,
 }
 
+impl Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Debug)]
 pub struct Literal {
 
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TODO: <Literal>")
+    }
 }
 
 #[derive(Debug)]
@@ -63,7 +77,13 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn to_string(&self) -> String {
-        format!("{:?} {} {:?}", self.kind, self.lexeme, self.literal)
+    // pub fn to_string(&self) -> String {
+    //     format!("{:?} {} {:?}", self.kind, self.lexeme, self.literal)
+    // }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {} {}", self.kind, self.lexeme, self.literal)
     }
 }
