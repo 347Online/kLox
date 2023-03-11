@@ -9,7 +9,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let len = args.len();
 
-    let lox = Lox::new();
+    let mut lox = Lox::new();
 
     match len {
         1 => lox.run_prompt(),

@@ -1,5 +1,7 @@
 use std::{fmt::Display, fs::read_to_string, io::*};
 
+use crate::scanner::Scanner;
+
 pub struct Lox {
     had_error: bool,
 }
