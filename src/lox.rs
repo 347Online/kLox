@@ -52,3 +52,9 @@ impl Lox {
         self.had_error = true;
     }
 }
+
+impl Default for Lox {
+    fn default() -> Self {
+        Self::new()
+    }
+}
