@@ -77,9 +77,14 @@ pub struct Token {
 }
 
 impl Token {
-    // pub fn to_string(&self) -> String {
-    //     format!("{:?} {} {:?}", self.kind, self.lexeme, self.literal)
-    // }
+    pub fn new<S: Into<String> + Display>(kind: TokenType, lexeme: S, literal: Literal, line: i32) -> Token {
+        Token {
+            kind,
+            lexeme: lexeme.to_string(),
+            literal,
+            line
+        }
+    }
 }
 
 impl Display for Token {
