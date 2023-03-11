@@ -19,6 +19,11 @@ impl Lox {
 
             let mut line = String::new();
             stdin.read_line(&mut line).expect("Failed to read stdin");
+
+            if line.is_empty() {
+                break;
+            }
+
             Lox::run(line);
         }
     }
