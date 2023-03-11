@@ -50,6 +50,11 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
+pub struct Literal {
+
+}
+
+#[derive(Debug)]
 pub struct Token {
     kind: TokenType,
     lexeme: String,
