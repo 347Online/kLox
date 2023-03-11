@@ -1,6 +1,7 @@
-
+pub mod lox;
 
 use std::env;
+use lox::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -8,15 +9,7 @@ fn main() {
 
     match len {
         1 => Lox::run_prompt(),
-        2 => Lox::run_file(args[1]),
+        2 => Lox::run_file(args[1].clone()),
         _ => println!(),
-    }
-
-    if len > 2 {
-        println!("Usage: klox-vm [script]")
-    } else if len == 2 {
-        // Lox::run_file(args[1]);
-    } else {
-        Lox::run_prompt();
     }
 }
