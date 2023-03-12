@@ -33,19 +33,50 @@ impl Parser {
         expr
     }
 
-    fn comparison(&mut self) -> Expr {}
+    fn comparison(&mut self) -> Expr {
+        let expr = self.term();
+
+        while self.advance_if(vec![
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let operator = self.previous();
+            let right = Box::new(self.term());
+            expr = Expr::Binary {
+                operator,
+                left: Box::new(expr),
+                right,
+            }
+        }
+
+        expr
+    }
+
+    fn term(&mut self) -> Expr {
+        let expr = self.factor();
+
+        while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
+            let operator = self.previous();
+            let right = Box::new(self.factor());
+            expr = Expr::Binary {
+                operator,
+                left: Box::new(expr),
+                right,
+            }
+        }
+
+        expr
+    }
+
+    fn factor(&mut self) -> Expr {}
 
     fn check(&self, kind: TokenType) -> bool {
-        if self.is_at_end() {
-            false
-        } else {
-            self.peek().kind == kind
-        }
+        !self.is_at_end() && self.peek().is(kind)
     }
 
-    fn advance(&mut self) -> Token {
-
-    }
+    fn advance(&mut self) -> Token {}
 
     fn advance_if(&mut self, kinds: Vec<TokenType>) -> bool {
         for kind in kinds {
@@ -59,11 +90,7 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        if let Token {kind: TokenType::Eof, ..} = self.peek() {
-            true
-        } else {
-            false
-        }
+        self.peek().is(TokenType::Eof)
     }
 
     fn peek(&self) -> Token {
