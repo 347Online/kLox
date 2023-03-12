@@ -19,41 +19,43 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(&mut self) -> Result<(), String> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
         }
 
-        self.tokens.push(Token::new(TokenType::Eof, "", None, self.line));
-        Ok(self.tokens)
+        self.tokens.push(Token::new(TokenType::Eof, "", Literal::Empty, self.line));
+        Ok(())
     }
 
-    fn scan_token(&mut self) -> Result<(), String> {
+    fn scan_token(&mut self) -> Result<Vec<Token>, String> {
         let c = self.advance();
 
         let token = self.create_token(c, self.line)?;
         self.tokens.push(token);
 
-        Ok(())
+        Ok(self.tokens.clone())
     }
 
     fn advance(&mut self) -> char {
-
+        let c = self.source.chars().collect::<Vec<char>>()[self.current as usize];
+        self.current += 1;
+        c
     }
 
     fn create_token(&mut self, c: char, line: i32) -> Result<Token, String> {
         let (kind, literal) = match c {
-            '(' => (TokenType::LeftParen, None),
-            ')' => (TokenType::RightParen, None),
-            '{' => (TokenType::LeftBrace, None),
-            '}' => (TokenType::RightBrace, None),
-            ',' => (TokenType::Comma, None),
-            '.' => (TokenType::Dot, None),
-            '-' => (TokenType::Minus, None),
-            '+' => (TokenType::Plus, None),
-            ';' => (TokenType::Semicolon, None),
-            '*' => (TokenType::Star, None),
+            '(' => (TokenType::LeftParen, Literal::Empty),
+            ')' => (TokenType::RightParen, Literal::Empty),
+            '{' => (TokenType::LeftBrace, Literal::Empty),
+            '}' => (TokenType::RightBrace, Literal::Empty),
+            ',' => (TokenType::Comma, Literal::Empty),
+            '.' => (TokenType::Dot, Literal::Empty),
+            '-' => (TokenType::Minus, Literal::Empty),
+            '+' => (TokenType::Plus, Literal::Empty),
+            ';' => (TokenType::Semicolon, Literal::Empty),
+            '*' => (TokenType::Star, Literal::Empty),
 
             _ => return Err(Lox::error(line, "Unexpected character")),
         };
