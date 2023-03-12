@@ -70,7 +70,33 @@ impl Parser {
         expr
     }
 
-    fn factor(&mut self) -> Expr {}
+    fn factor(&mut self) -> Expr {
+        let expr = self.unary();
+
+        while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
+            let operator = self.previous();
+            let right = Box::new(self.unary());
+            expr = Expr::Binary {
+                operator,
+                left: Box::new(expr),
+                right,
+            }
+        }
+
+        expr
+    }
+
+    fn unary(&mut self) -> Expr {
+        if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
+            let operator = self.previous();
+            let right = Box::new(self.unary());
+            return Expr::Unary { operator, right };
+        }
+
+        self.primary()
+    }
+
+    fn primary(&mut self) -> Expr {}
 
     fn check(&self, kind: TokenType) -> bool {
         !self.is_at_end() && self.peek().is(kind)
