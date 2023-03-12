@@ -47,6 +47,14 @@ impl Scanner {
         }
     }
 
+    fn peek_next(&self) -> Option<char> {
+        if self.current + 1 >= self.source.len() {
+            None
+        } else {
+            Some(self.source[self.current])
+        }
+    }
+
     fn advance(&mut self) -> char {
         // let c = self.source.chars().collect::<Vec<char>>()[self.current as usize];
         let c = self.source[self.current];
@@ -95,7 +103,7 @@ impl Scanner {
         Ok(())
     }
 
-    fn number(&mut self) {}
+    fn number(&mut self) -> Result<(), String> {}
 
     fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
         let literal = Literal::Empty;
