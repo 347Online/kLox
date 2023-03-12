@@ -20,7 +20,7 @@ impl Parser {
     fn equality(&mut self) -> Expr {
         let expr = self.comparison();
 
-        while self.match_token(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
+        while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
             let operator = self.previous();
             let right = Box::new(self.comparison());
             expr = Expr::Binary {
@@ -35,7 +35,36 @@ impl Parser {
 
     fn comparison(&mut self) -> Expr {}
 
-    fn match_token(&self, kinds: Vec<TokenType>) -> bool {}
+    fn check(&self, kind: TokenType) -> bool {
+        if self.is_at_end() {
+            false
+        } else {
+            self.peek().kind == kind
+        }
+    }
 
-    fn previous(&mut self) -> Token {}
+    fn advance(&mut self) -> Token {
+
+    }
+
+    fn advance_if(&mut self, kinds: Vec<TokenType>) -> bool {
+        for kind in kinds {
+            if self.check(kind) {
+                self.advance();
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn is_at_end(&self) -> bool {
+        self.peek().kind == TokenType::Eof
+    }
+
+    fn peek(&self) -> Token {
+
+    }
+
+    fn previous(&self) -> Token {}
 }
