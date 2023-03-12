@@ -4,8 +4,8 @@ pub struct Scanner {
     // source_string: String,
     source: Vec<char>,
     tokens: Vec<Token>,
-    start: i32,
-    current: i32,
+    start: usize,
+    current: usize,
     line: i32,
 }
 
@@ -41,9 +41,21 @@ impl Scanner {
 
     fn advance(&mut self) -> char {
         // let c = self.source.chars().collect::<Vec<char>>()[self.current as usize];
-        let c = self.source[self.current as usize];
+        let c = self.source[self.current];
         self.current += 1;
         c
+    }
+
+    fn check_next(&self, c: char) -> bool {
+        if self.is_at_end() {
+            return false
+        }
+
+        if self.source[self.current] != c {
+            return false
+        }
+
+        true
     }
 
     fn create_token(&mut self, c: char, line: i32) -> Result<Token, String> {
@@ -59,6 +71,8 @@ impl Scanner {
             ';' => (TokenType::Semicolon, Literal::Empty),
             '*' => (TokenType::Star, Literal::Empty),
 
+            // '!' => 
+
             _ => return Err(Lox::error(line, "Unexpected character")),
         };
 
@@ -66,6 +80,6 @@ impl Scanner {
     }
 
     fn is_at_end(&self) -> bool {
-        self.current >= self.source.len() as i32
+        self.current >= self.source.len()
     }
 }
