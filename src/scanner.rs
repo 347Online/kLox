@@ -46,7 +46,7 @@ impl Scanner {
         c
     }
 
-    fn check_next(&mut self, c: char) -> bool {
+    fn advance_if(&mut self, c: char) -> bool {
         if self.is_at_end() {
             return false
         }
@@ -72,7 +72,25 @@ impl Scanner {
             ';' => (TokenType::Semicolon, Literal::Empty),
             '*' => (TokenType::Star, Literal::Empty),
 
-            '!' => if self.check_next('=') {
+            '!' => if self.advance_if('=') {
+                (TokenType::BangEqual, Literal::Empty)
+            } else {
+                (TokenType::Bang, Literal::Empty)
+            }
+
+            '=' => if self.advance_if('=') {
+                (TokenType::EqualEqual, Literal::Empty)
+            } else {
+                (TokenType::Equal, Literal::Empty)
+            }
+
+            '<' => if self.advance_if('=') {
+                (TokenType::LessEqual, Literal::Empty)
+            } else {
+                (TokenType::Less, Literal::Empty)
+            }
+            
+            '>' => if self.advance_if('=') {
                 (TokenType::GreaterEqual, Literal::Empty)
             } else {
                 (TokenType::Greater, Literal::Empty)
