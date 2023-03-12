@@ -125,7 +125,11 @@ impl Scanner {
 
         dbg!(self.peek(), self.peek_next());
 
-        if self.peek().is_some() && self.peek().unwrap() == '.' && self.peek_next().is_some() && self.peek_next().unwrap().is_ascii_digit() {
+        if self.peek().is_some()
+            && self.peek().unwrap() == '.'
+            && self.peek_next().is_some()
+            && self.peek_next().unwrap().is_ascii_digit()
+        {
             number_string.push(self.advance());
             add_digits!()
         }
@@ -145,7 +149,9 @@ impl Scanner {
     fn identifier(&mut self, first: char) -> Result<(), String> {
         let mut ident_string = String::from(first);
 
-        while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric() || self.peek().unwrap() == '_' {
+        while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric()
+            || self.peek().unwrap() == '_'
+        {
             ident_string.push(self.advance());
         }
 

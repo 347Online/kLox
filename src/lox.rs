@@ -1,4 +1,8 @@
-use std::{fmt::Display, fs::read_to_string, io::{stdin, stdout, Write}};
+use std::{
+    fmt::Display,
+    fs::read_to_string,
+    io::{stdin, stdout, Write},
+};
 
 use crate::scanner::Scanner;
 
