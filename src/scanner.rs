@@ -46,7 +46,7 @@ impl Scanner {
         c
     }
 
-    fn check_next(&self, c: char) -> bool {
+    fn check_next(&mut self, c: char) -> bool {
         if self.is_at_end() {
             return false
         }
@@ -55,6 +55,7 @@ impl Scanner {
             return false
         }
 
+        self.current += 1;
         true
     }
 
@@ -71,7 +72,11 @@ impl Scanner {
             ';' => (TokenType::Semicolon, Literal::Empty),
             '*' => (TokenType::Star, Literal::Empty),
 
-            // '!' => 
+            '!' => if self.check_next('=') {
+                (TokenType::GreaterEqual, Literal::Empty)
+            } else {
+                (TokenType::Greater, Literal::Empty)
+            }
 
             _ => return Err(Lox::error(line, "Unexpected character")),
         };
