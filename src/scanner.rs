@@ -66,6 +66,29 @@ impl Scanner {
         true
     }
 
+    fn string(&mut self) -> Result<(), String> {
+        let mut string_value = String::new();
+
+        while self.peek() != Some('"') && !self.is_at_end() {
+            if let Some('\n') = self.peek() {
+                self.line += 1;
+            }
+            string_value.push(self.advance());
+        }
+
+        if self.is_at_end() {
+            return Err(Lox::error(self.line, "Unterminated string"))
+        }
+
+        // The closing "
+        self.advance();
+
+        let token = Token::new(TokenType::String, format!("\"{string_value}\""), Literal::String(string_value), self.line);
+        self.tokens.push(token);
+
+        Ok(())
+    }
+
     fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
         let literal = Literal::Empty;
 
@@ -123,6 +146,11 @@ impl Scanner {
             },
 
             c if c.is_ascii_whitespace() => return Ok(()),
+
+            '"' => {
+                self.string()?;
+                return Ok(());
+            },
 
             _ => return Err(Lox::error(line, "Unexpected character")),
         };

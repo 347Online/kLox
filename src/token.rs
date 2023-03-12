@@ -60,7 +60,7 @@ impl Display for TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
-    Comment(String),
+    String(String),
     Empty
 }
 
