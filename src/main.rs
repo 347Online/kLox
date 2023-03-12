@@ -2,6 +2,7 @@ pub mod lox;
 pub mod scanner;
 pub mod token;
 pub mod expr;
+pub mod parser;
 
 use lox::*;
 use std::env;
