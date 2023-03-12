@@ -39,12 +39,12 @@ impl Scanner {
         Ok(self.tokens.clone())
     }
 
-    fn peek(&self) -> char {
+    fn peek(&self) -> Option<char> {
         if self.is_at_end() {
-            return '\0';
+            None
+        } else {
+            Some(self.source[self.current])
         }
-
-        self.source[self.current]
     }
 
     fn advance(&mut self) -> char {
@@ -107,7 +107,7 @@ impl Scanner {
             '/' => if self.advance_if('/') {
                 // A comment goes until the end of line
                 let mut comment = String::new();
-                while self.peek() != '\n' && !self.is_at_end() {
+                while self.peek() != Some('\n') && !self.is_at_end() {
                     comment.push(self.advance());
                 }
 
