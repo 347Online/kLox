@@ -59,12 +59,18 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        self.peek().kind == TokenType::Eof
+        if let Token {kind: TokenType::Eof, ..} = self.peek() {
+            true
+        } else {
+            false
+        }
     }
 
     fn peek(&self) -> Token {
 
     }
 
-    fn previous(&self) -> Token {}
+    fn previous(&self) -> Token {
+        self.tokens[self.current - 1]
+    }
 }
