@@ -1,4 +1,4 @@
-use crate::{token::*, lox::Lox};
+use crate::{lox::Lox, token::*};
 
 pub struct Scanner {
     // source_string: String,
@@ -26,7 +26,8 @@ impl Scanner {
             self.scan_token()?;
         }
 
-        self.tokens.push(Token::new(TokenType::Eof, "", Literal::Empty, self.line));
+        self.tokens
+            .push(Token::new(TokenType::Eof, "", Literal::Empty, self.line));
         Ok(self.tokens.clone())
     }
 
@@ -55,11 +56,11 @@ impl Scanner {
 
     fn advance_if(&mut self, c: char) -> bool {
         if self.is_at_end() {
-            return false
+            return false;
         }
 
         if self.source[self.current] != c {
-            return false
+            return false;
         }
 
         self.current += 1;
@@ -77,17 +78,24 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(Lox::error(self.line, "Unterminated string"))
+            return Err(Lox::error(self.line, "Unterminated string"));
         }
 
         // The closing "
         self.advance();
 
-        let token = Token::new(TokenType::String, format!("\"{string_value}\""), Literal::String(string_value), self.line);
+        let token = Token::new(
+            TokenType::String,
+            format!("\"{string_value}\""),
+            Literal::String(string_value),
+            self.line,
+        );
         self.tokens.push(token);
 
         Ok(())
     }
+
+    fn number(&mut self) {}
 
     fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
         let literal = Literal::Empty;
@@ -104,53 +112,68 @@ impl Scanner {
             ';' => TokenType::Semicolon,
             '*' => TokenType::Star,
 
-            '!' => if self.advance_if('=') {
-                TokenType::BangEqual
-            } else {
-                TokenType::Bang
-            }
-
-            '=' => if self.advance_if('=') {
-                TokenType::EqualEqual
-            } else {
-                TokenType::Equal
-            }
-
-            '<' => if self.advance_if('=') {
-                TokenType::LessEqual
-            } else {
-                TokenType::Less
-            }
-
-            '>' => if self.advance_if('=') {
-                TokenType::GreaterEqual
-            } else {
-                TokenType::Greater
-            }
-
-            '/' => if self.advance_if('/') {
-                // A comment goes until the end of line
-                let mut comment = String::new();
-                while self.peek() != Some('\n') && !self.is_at_end() {
-                    comment.push(self.advance());
+            '!' => {
+                if self.advance_if('=') {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
                 }
+            }
 
-                return Ok(())
-            } else {
-                TokenType::Slash
+            '=' => {
+                if self.advance_if('=') {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                }
+            }
+
+            '<' => {
+                if self.advance_if('=') {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                }
+            }
+
+            '>' => {
+                if self.advance_if('=') {
+                    TokenType::GreaterEqual
+                } else {
+                    TokenType::Greater
+                }
+            }
+
+            '/' => {
+                if self.advance_if('/') {
+                    // A comment goes until the end of line
+                    let mut comment = String::new();
+                    while self.peek() != Some('\n') && !self.is_at_end() {
+                        comment.push(self.advance());
+                    }
+
+                    return Ok(());
+                } else {
+                    TokenType::Slash
+                }
             }
 
             '\n' => {
                 self.line += 1;
-                return Ok(())
-            },
+                return Ok(());
+            }
 
             c if c.is_ascii_whitespace() => return Ok(()),
 
             '"' => {
                 self.string()?;
                 return Ok(());
-            },
+            }
+
+            c if c.is_ascii_digit() => {
+                self.number();
+                return Ok(());
+            }
 
             _ => return Err(Lox::error(line, "Unexpected character")),
         };
