@@ -57,7 +57,7 @@ impl Display for TokenType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Literal {
 
 }
@@ -72,12 +72,12 @@ impl Display for Literal {
 pub struct Token {
     kind: TokenType,
     lexeme: String,
-    literal: Literal,
+    literal: Option<Literal>,
     line: i32,
 }
 
 impl Token {
-    pub fn new<S: Into<String> + Display>(kind: TokenType, lexeme: S, literal: Literal, line: i32) -> Token {
+    pub fn new<S: Into<String> + Display>(kind: TokenType, lexeme: S, literal: Option<Literal>, line: i32) -> Token {
         Token {
             kind,
             lexeme: lexeme.to_string(),
@@ -89,6 +89,6 @@ impl Token {
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {} {}", self.kind, self.lexeme, self.literal)
+        write!(f, "{} {} {}", self.kind, self.lexeme, self.literal.unwrap_or_default())
     }
 }
