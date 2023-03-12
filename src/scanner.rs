@@ -1,5 +1,3 @@
-use core::num;
-
 use crate::{lox::Lox, token::*};
 
 pub struct Scanner {
@@ -53,7 +51,7 @@ impl Scanner {
         if self.current + 1 >= self.source.len() {
             None
         } else {
-            Some(self.source[self.current])
+            Some(self.source[self.current + 1])
         }
     }
 
@@ -125,7 +123,9 @@ impl Scanner {
 
         add_digits!();
 
-        if self.peek().is_some() && self.peek().unwrap() == '.' {
+        dbg!(self.peek(), self.peek_next());
+
+        if self.peek().is_some() && self.peek().unwrap() == '.' && self.peek_next().is_some() && self.peek_next().unwrap().is_ascii_digit() {
             number_string.push(self.advance());
             add_digits!()
         }
@@ -138,6 +138,37 @@ impl Scanner {
             self.line,
         );
         self.tokens.push(token);
+
+        Ok(())
+    }
+
+    fn identifier(&mut self, first: char) -> Result<(), String> {
+        let mut ident_string = String::from(first);
+
+        while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric() || self.peek().unwrap() == '_' {
+            ident_string.push(self.advance());
+        }
+
+        match ident_string.as_str() {
+            "or" => {
+                let token = Token::new(
+                    TokenType::Or,
+                    ident_string.clone(),
+                    Literal::Keyword(ident_string),
+                    self.line,
+                );
+            }
+
+            _ => {
+                let token = Token::new(
+                    TokenType::Identifier,
+                    ident_string.clone(),
+                    Literal::Identifier { name: ident_string },
+                    self.line,
+                );
+                self.tokens.push(token);
+            }
+        }
 
         Ok(())
     }
@@ -217,6 +248,11 @@ impl Scanner {
 
             digit if c.is_ascii_digit() => {
                 self.number(digit)?;
+                return Ok(());
+            }
+
+            ident_char if c.is_ascii_alphabetic() || c == '_' => {
+                self.identifier(ident_char)?;
                 return Ok(());
             }
 

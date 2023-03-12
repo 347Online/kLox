@@ -59,9 +59,11 @@ impl Display for TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
+    Identifier { name: String },
     Number(f64),
     String(String),
-    Empty
+    Empty,
+    Keyword(String),
 }
 
 impl Display for Literal {
@@ -79,12 +81,17 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new<S: Into<String> + Display>(kind: TokenType, lexeme: S, literal: Literal, line: i32) -> Token {
+    pub fn new<S: Into<String> + Display>(
+        kind: TokenType,
+        lexeme: S,
+        literal: Literal,
+        line: i32,
+    ) -> Token {
         Token {
             kind,
             lexeme: lexeme.to_string(),
             literal,
-            line
+            line,
         }
     }
 }
