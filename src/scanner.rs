@@ -33,8 +33,7 @@ impl Scanner {
     fn scan_token(&mut self) -> Result<Vec<Token>, String> {
         let c = self.advance();
 
-        let token = self.create_token(c, self.line)?;
-        self.tokens.push(token);
+        self.create_token(c, self.line)?;
 
         Ok(self.tokens.clone())
     }
@@ -67,41 +66,43 @@ impl Scanner {
         true
     }
 
-    fn create_token(&mut self, c: char, line: i32) -> Result<Token, String> {
-        let (kind, literal) = match c {
-            '(' => (TokenType::LeftParen, Literal::Empty),
-            ')' => (TokenType::RightParen, Literal::Empty),
-            '{' => (TokenType::LeftBrace, Literal::Empty),
-            '}' => (TokenType::RightBrace, Literal::Empty),
-            ',' => (TokenType::Comma, Literal::Empty),
-            '.' => (TokenType::Dot, Literal::Empty),
-            '-' => (TokenType::Minus, Literal::Empty),
-            '+' => (TokenType::Plus, Literal::Empty),
-            ';' => (TokenType::Semicolon, Literal::Empty),
-            '*' => (TokenType::Star, Literal::Empty),
+    fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
+        let literal = Literal::Empty;
+
+        let kind = match c {
+            '(' => TokenType::LeftParen,
+            ')' => TokenType::RightParen,
+            '{' => TokenType::LeftBrace,
+            '}' => TokenType::RightBrace,
+            ',' => TokenType::Comma,
+            '.' => TokenType::Dot,
+            '-' => TokenType::Minus,
+            '+' => TokenType::Plus,
+            ';' => TokenType::Semicolon,
+            '*' => TokenType::Star,
 
             '!' => if self.advance_if('=') {
-                (TokenType::BangEqual, Literal::Empty)
+                TokenType::BangEqual
             } else {
-                (TokenType::Bang, Literal::Empty)
+                TokenType::Bang
             }
 
             '=' => if self.advance_if('=') {
-                (TokenType::EqualEqual, Literal::Empty)
+                TokenType::EqualEqual
             } else {
-                (TokenType::Equal, Literal::Empty)
+                TokenType::Equal
             }
 
             '<' => if self.advance_if('=') {
-                (TokenType::LessEqual, Literal::Empty)
+                TokenType::LessEqual
             } else {
-                (TokenType::Less, Literal::Empty)
+                TokenType::Less
             }
 
             '>' => if self.advance_if('=') {
-                (TokenType::GreaterEqual, Literal::Empty)
+                TokenType::GreaterEqual
             } else {
-                (TokenType::Greater, Literal::Empty)
+                TokenType::Greater
             }
 
             '/' => if self.advance_if('/') {
@@ -111,15 +112,25 @@ impl Scanner {
                     comment.push(self.advance());
                 }
 
-                (TokenType::Comment, Literal::Comment(comment))
+                return Ok(())
             } else {
-                (TokenType::Slash, Literal::Empty)
+                TokenType::Slash
             }
+
+            '\n' => {
+                self.line += 1;
+                return Ok(())
+            },
+
+            c if c.is_ascii_whitespace() => return Ok(()),
 
             _ => return Err(Lox::error(line, "Unexpected character")),
         };
 
-        Ok(Token::new(kind, c, literal, line))
+        let token = Token::new(kind, c, literal, line);
+        self.tokens.push(token);
+
+        Ok(())
     }
 
     fn is_at_end(&self) -> bool {
