@@ -15,12 +15,14 @@ impl Lox {
         Lox { had_error: false }
     }
 
-    pub fn run_file(&mut self, path: String) {
+    pub fn run_file(&mut self, path: String) -> Result<(), String> {
         let code = read_to_string(path).unwrap();
         println!("{code}");
+
+        Ok(())
     }
 
-    pub fn run_prompt(&mut self) {
+    pub fn run_prompt(&mut self) -> Result<(), String> {
         let stdin = stdin();
         let mut stdout = stdout();
         loop {
@@ -34,8 +36,10 @@ impl Lox {
                 break;
             }
 
-            self.run(line);
+            self.run(line)?;
         }
+
+        Ok(())
     }
 
     pub fn run(&mut self, source: String) -> Result<(), String> {
