@@ -43,13 +43,15 @@ impl Lox {
         }
     }
 
-    pub fn error(&mut self, line: i32, message: String) {
-        self.report(line, "", message);
+    pub fn error<S: Into<String> + Display>(line: i32, message: S) -> String {
+        Lox::report(line, String::from(""), message.to_string())
     }
 
-    fn report<S: Into<String> + Display>(&mut self, line: i32, at: S, message: String) {
-        println!("[line {}] Error{}: {}", line, at, message);
-        self.had_error = true;
+    fn report(line: i32, at: String, message: String) -> String {
+        let formatted_message = format!("[line {}] Error{}: {}", line, at, message);
+        println!("{formatted_message}");
+        // self.had_error = true;
+        formatted_message
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::token::*;
+use crate::{token::*, lox::Lox};
 
 pub struct Scanner {
     source: String,
@@ -19,27 +19,30 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Vec<Token> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token();
+            self.scan_token()?;
         }
 
         self.tokens.push(Token::new(TokenType::Eof, "", None, self.line));
-        self.tokens
+        Ok(self.tokens)
     }
 
-    fn scan_token(&mut self) {
+    fn scan_token(&mut self) -> Result<(), String> {
         let c = self.advance();
 
-        let token = self.create_token(c, self.line);
+        let token = self.create_token(c, self.line)?;
+        self.tokens.push(token);
+
+        Ok(())
     }
 
     fn advance(&mut self) -> char {
 
     }
 
-    fn create_token(&mut self, c: char, line: i32) -> Token {
+    fn create_token(&mut self, c: char, line: i32) -> Result<Token, String> {
         let (kind, literal) = match c {
             '(' => (TokenType::LeftParen, None),
             ')' => (TokenType::RightParen, None),
@@ -52,10 +55,10 @@ impl Scanner {
             ';' => (TokenType::Semicolon, None),
             '*' => (TokenType::Star, None),
 
-            _ => panic!(),
+            _ => return Err(Lox::error(line, "Unexpected character")),
         };
 
-        Token::new(kind, c, literal, line)
+        Ok(Token::new(kind, c, literal, line))
     }
 
     fn is_at_end(&self) -> bool {
