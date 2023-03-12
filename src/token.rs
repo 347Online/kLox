@@ -26,6 +26,7 @@ pub enum TokenType {
     LessEqual,
 
     // Literals.
+    Comment,
     Identifier,
     String,
     Number,
@@ -59,6 +60,7 @@ impl Display for TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
+    Comment(String),
     Empty
 }
 

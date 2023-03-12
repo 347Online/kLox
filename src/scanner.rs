@@ -20,14 +20,14 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<(), String> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
         }
 
         self.tokens.push(Token::new(TokenType::Eof, "", Literal::Empty, self.line));
-        Ok(())
+        Ok(self.tokens.clone())
     }
 
     fn scan_token(&mut self) -> Result<Vec<Token>, String> {
@@ -37,6 +37,14 @@ impl Scanner {
         self.tokens.push(token);
 
         Ok(self.tokens.clone())
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        }
+
+        self.source[self.current]
     }
 
     fn advance(&mut self) -> char {
@@ -89,11 +97,23 @@ impl Scanner {
             } else {
                 (TokenType::Less, Literal::Empty)
             }
-            
+
             '>' => if self.advance_if('=') {
                 (TokenType::GreaterEqual, Literal::Empty)
             } else {
                 (TokenType::Greater, Literal::Empty)
+            }
+
+            '/' => if self.advance_if('/') {
+                // A comment goes until the end of line
+                let mut comment = String::new();
+                while self.peek() != '\n' && !self.is_at_end() {
+                    comment.push(self.advance());
+                }
+
+                (TokenType::Comment, Literal::Comment(comment))
+            } else {
+                (TokenType::Slash, Literal::Empty)
             }
 
             _ => return Err(Lox::error(line, "Unexpected character")),

@@ -1,4 +1,4 @@
-use std::{fmt::Display, fs::read_to_string, io::*};
+use std::{fmt::Display, fs::read_to_string, io::{stdin, stdout, Write}};
 
 use crate::scanner::Scanner;
 
@@ -34,13 +34,15 @@ impl Lox {
         }
     }
 
-    pub fn run(&mut self, source: String) {
+    pub fn run(&mut self, source: String) -> Result<(), String> {
         let mut scanner = Scanner::new(source);
-        let tokens = scanner.scan_tokens();
+        let tokens = scanner.scan_tokens()?;
 
         for token in tokens {
             println!("{:?}", token);
         }
+
+        Ok(())
     }
 
     pub fn error<S: Into<String> + Display>(line: i32, message: S) -> String {
