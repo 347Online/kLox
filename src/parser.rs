@@ -67,7 +67,7 @@ impl Parser {
     }
 
     fn peek(&self) -> Token {
-
+        self.tokens[self.current]
     }
 
     fn previous(&self) -> Token {
