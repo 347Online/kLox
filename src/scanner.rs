@@ -147,9 +147,9 @@ impl Scanner {
     }
 
     fn identifier(&mut self, first: char) -> Result<(), String> {
-        fn keyword_token(name: String) -> Option<TokenType> {
+        fn keyword_token(name: &str) -> Option<TokenType> {
 
-            let kind = match name.as_str() {
+            let kind = match name {
                 "and" => TokenType::And,
                 "class" => TokenType::Class,
                 "else" => TokenType::Else,
@@ -181,8 +181,10 @@ impl Scanner {
             ident_string.push(self.advance());
         }
 
-        match ident_string.as_str() {
-            "or" => {
+        let name = ident_string.as_str();
+
+        match name {
+            name if keyword_token(name).is_some() => {
                 let token = Token::new(
                     TokenType::Or,
                     ident_string.clone(),
