@@ -56,7 +56,6 @@ impl Scanner {
     }
 
     fn advance(&mut self) -> char {
-        // let c = self.source.chars().collect::<Vec<char>>()[self.current as usize];
         let c = self.source[self.current];
         self.current += 1;
         c
@@ -123,8 +122,6 @@ impl Scanner {
 
         add_digits!();
 
-        dbg!(self.peek(), self.peek_next());
-
         if self.peek().is_some()
             && self.peek().unwrap() == '.'
             && self.peek_next().is_some()
@@ -148,7 +145,6 @@ impl Scanner {
 
     fn identifier(&mut self, first: char) -> Result<(), String> {
         fn keyword_token(name: &str) -> Option<TokenType> {
-
             let kind = match name {
                 "and" => TokenType::And,
                 "class" => TokenType::Class,
@@ -183,26 +179,22 @@ impl Scanner {
 
         let name = ident_string.as_str();
 
-        match name {
-            name if keyword_token(name).is_some() => {
-                let token = Token::new(
-                    TokenType::Or,
-                    ident_string.clone(),
-                    Literal::Keyword(ident_string),
-                    self.line,
-                );
-            }
-
-            _ => {
-                let token = Token::new(
-                    TokenType::Identifier,
-                    ident_string.clone(),
-                    Literal::Identifier { name: ident_string },
-                    self.line,
-                );
-                self.tokens.push(token);
-            }
-        }
+        let token = if let Some(kind) = keyword_token(name) {
+            Token::new(
+                kind,
+                ident_string.clone(),
+                Literal::Keyword(ident_string),
+                self.line,
+            )
+        } else {
+            Token::new(
+                TokenType::Identifier,
+                ident_string.clone(),
+                Literal::Identifier { name: ident_string },
+                self.line,
+            )
+        };
+        self.tokens.push(token);
 
         Ok(())
     }

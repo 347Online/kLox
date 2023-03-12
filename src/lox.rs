@@ -17,7 +17,7 @@ impl Lox {
 
     pub fn run_file(&mut self, path: String) -> Result<(), String> {
         let code = read_to_string(path).unwrap();
-        println!("{code}");
+        self.run(code)?;
 
         Ok(())
     }
