@@ -147,6 +147,17 @@ impl Scanner {
     }
 
     fn identifier(&mut self, first: char) -> Result<(), String> {
+        fn keyword_token(name: String) -> Option<TokenType> {
+
+            let kind = match name.as_str() {
+                "or" => TokenType::Or,
+
+                _ => return None,
+            };
+
+            Some(kind)
+        }
+
         let mut ident_string = String::from(first);
 
         while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric()
