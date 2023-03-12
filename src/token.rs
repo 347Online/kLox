@@ -59,6 +59,7 @@ impl Display for TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
+    Number(f64),
     String(String),
     Empty
 }

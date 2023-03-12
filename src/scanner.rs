@@ -1,3 +1,5 @@
+use core::num;
+
 use crate::{lox::Lox, token::*};
 
 pub struct Scanner {
@@ -94,7 +96,7 @@ impl Scanner {
 
         let token = Token::new(
             TokenType::String,
-            format!("\"{string_value}\""),
+            string_value.clone(),
             Literal::String(string_value),
             self.line,
         );
@@ -103,7 +105,42 @@ impl Scanner {
         Ok(())
     }
 
-    fn number(&mut self) -> Result<(), String> {}
+    fn number(&mut self, first_digit: char) -> Result<(), String> {
+        let mut number_string = String::from(first_digit);
+
+        macro_rules! add_digits {
+            () => {
+                while self.peek().is_some() && self.peek().unwrap().is_ascii_digit() {
+                    match self.advance() {
+                        c if c.is_ascii_digit() => {
+                            number_string.push(c);
+                            continue;
+                        }
+
+                        _ => break,
+                    }
+                }
+            };
+        }
+
+        add_digits!();
+
+        if self.peek().is_some() && self.peek().unwrap() == '.' {
+            number_string.push(self.advance());
+            add_digits!()
+        }
+
+        let value: f64 = number_string.parse().expect("This should always succeed, as we have rigorously checked for number characters before adding them to number_string");
+        let token = Token::new(
+            TokenType::Number,
+            number_string,
+            Literal::Number(value),
+            self.line,
+        );
+        self.tokens.push(token);
+
+        Ok(())
+    }
 
     fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
         let literal = Literal::Empty;
@@ -171,15 +208,15 @@ impl Scanner {
                 return Ok(());
             }
 
-            c if c.is_ascii_whitespace() => return Ok(()),
+            _ if c.is_ascii_whitespace() => return Ok(()),
 
             '"' => {
                 self.string()?;
                 return Ok(());
             }
 
-            c if c.is_ascii_digit() => {
-                self.number();
+            digit if c.is_ascii_digit() => {
+                self.number(digit)?;
                 return Ok(());
             }
 
