@@ -1,14 +1,13 @@
+pub mod expr;
 pub mod lox;
+pub mod parser;
 pub mod scanner;
 pub mod token;
-pub mod expr;
-pub mod parser;
 
 use lox::*;
 use std::env;
 
 fn main() -> Result<(), String> {
-
     let args: Vec<String> = env::args().collect();
     let len = args.len();
 

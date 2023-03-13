@@ -4,7 +4,10 @@ use std::{
     io::{stdin, stdout, Write},
 };
 
-use crate::{scanner::Scanner, token::{Token, TokenType}};
+use crate::{
+    scanner::Scanner,
+    token::{Token, TokenType},
+};
 
 pub struct Lox {
     had_error: bool,

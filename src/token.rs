@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen,
@@ -99,6 +99,10 @@ impl Token {
 
     pub fn is(&self, kind: TokenType) -> bool {
         self.kind == kind
+    }
+
+    pub fn kind(&self) -> TokenType {
+        self.kind
     }
 
     pub fn lexeme(&self) -> String {
