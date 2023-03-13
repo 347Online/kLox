@@ -34,8 +34,8 @@ impl Parser {
         expr
     }
 
-    fn comparison(&mut self) -> Expr {
-        let mut expr = self.term();
+    fn comparison(&mut self) -> Result<Expr, String> {
+        let mut expr = self.term()?;
 
         while self.advance_if(vec![
             TokenType::Greater,
@@ -43,8 +43,8 @@ impl Parser {
             TokenType::Less,
             TokenType::LessEqual,
         ]) {
-            let operator = self.previous();
-            let right = Box::new(self.term());
+            let operator = self.previous()?;
+            let right = Box::new(self.term()?);
             expr = Expr::Binary {
                 operator,
                 left: Box::new(expr),
