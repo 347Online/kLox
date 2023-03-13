@@ -55,12 +55,12 @@ impl Parser {
         expr
     }
 
-    fn term(&mut self) -> Expr {
-        let mut expr = self.factor();
+    fn term(&mut self) -> Result<Expr, String> {
+        let mut expr = self.factor()?;
 
         while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
-            let operator = self.previous();
-            let right = Box::new(self.factor());
+            let operator = self.previous()?;
+            let right = Box::new(self.factor()?);
             expr = Expr::Binary {
                 operator,
                 left: Box::new(expr),
