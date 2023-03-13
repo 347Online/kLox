@@ -18,7 +18,7 @@ impl Parser {
     }
 
     fn equality(&mut self) -> Expr {
-        let expr = self.comparison();
+        let mut expr = self.comparison();
 
         while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
             let operator = self.previous();
@@ -34,7 +34,7 @@ impl Parser {
     }
 
     fn comparison(&mut self) -> Expr {
-        let expr = self.term();
+        let mut expr = self.term();
 
         while self.advance_if(vec![
             TokenType::Greater,
@@ -55,7 +55,7 @@ impl Parser {
     }
 
     fn term(&mut self) -> Expr {
-        let expr = self.factor();
+        let mut expr = self.factor();
 
         while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
             let operator = self.previous();
@@ -71,7 +71,7 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Expr {
-        let expr = self.unary();
+        let mut expr = self.unary();
 
         while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
             let operator = self.previous();
@@ -80,7 +80,7 @@ impl Parser {
                 operator,
                 left: Box::new(expr),
                 right,
-            }
+            };
         }
 
         expr
@@ -154,15 +154,15 @@ impl Parser {
         self.peek().is(TokenType::Eof)
     }
 
-    fn peek(&self) -> Token {
-        self.tokens[self.current]
+    fn peek(&self) -> &Token {
+        &self.tokens[self.current]
     }
 
     fn previous(&self) -> Token {
-        self.tokens[self.current - 1]
+        self.tokens[self.current - 1].clone()
     }
 
-    fn error(token: Token, message: String) -> String {
+    fn error(token: &Token, message: String) -> String {
         Lox::error_token(token, message)
         // Consider refactoring to return some custom error structure
         // For now continuing to return a string

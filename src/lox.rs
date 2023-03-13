@@ -57,7 +57,7 @@ impl Lox {
         Lox::report(line, String::from(""), message.to_string())
     }
 
-    pub fn error_token<S: Into<String> + Display>(token: Token, message: S) -> String {
+    pub fn error_token<S: Into<String> + Display>(token: &Token, message: S) -> String {
         let at = if token.is(TokenType::Eof) {
             " at end ".to_string()
         } else {
