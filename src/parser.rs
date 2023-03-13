@@ -97,19 +97,19 @@ impl Parser {
         self.primary()
     }
 
-    fn primary(&mut self) -> Expr {
+    fn primary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::False]) {
-            return Expr::Literal(Literal::Bool(false));
+            return Ok(Expr::Literal(Literal::Bool(false)));
         }
         if self.advance_if(vec![TokenType::True]) {
-            return Expr::Literal(Literal::Bool(true));
+            return Ok(Expr::Literal(Literal::Bool(true)));
         }
         if self.advance_if(vec![TokenType::Nil]) {
-            return Expr::Literal(Literal::Nil);
+            return Ok(Expr::Literal(Literal::Nil));
         }
 
         if self.advance_if(vec![TokenType::Number, TokenType::String]) {
-            return Expr::Literal(self.previous().literal());
+            return Ok(Expr::Literal(self.previous().literal()));
         }
 
         if self.advance_if(vec![TokenType::LeftParen]) {
@@ -117,11 +117,12 @@ impl Parser {
             self.consume(
                 TokenType::RightParen,
                 String::from("Expect ')' after expression."),
-            );
-            return Expr::Grouping(Box::new(expr));
+            ).unwrap();
+            return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        panic!()
+        // panic!()
+        Err(Parser::error(self.peek(), String::from("Expect expression")))
     }
 
     fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, String> {
