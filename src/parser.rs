@@ -163,7 +163,7 @@ impl Parser {
         &self.tokens[self.current]
     }
 
-    fn previous(&self) -> Result<Token, String> {
+    fn previous(&self) -> Token {
         self.tokens[self.current - 1].clone()
     }
 
