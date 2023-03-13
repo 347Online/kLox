@@ -59,11 +59,13 @@ impl Display for TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
+    Bool(bool),
     Identifier { name: String },
     Number(f64),
     String(String),
     Empty,
     Keyword(String),
+    Nil,
 }
 
 impl Display for Literal {
@@ -97,6 +99,18 @@ impl Token {
 
     pub fn is(&self, kind: TokenType) -> bool {
         self.kind == kind
+    }
+
+    pub fn lexeme(&self) -> String {
+        self.lexeme
+    }
+
+    pub fn literal(&self) -> Literal {
+        self.literal.clone()
+    }
+
+    pub fn line(&self) -> i32 {
+        self.line
     }
 }
 

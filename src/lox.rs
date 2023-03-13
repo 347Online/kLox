@@ -4,7 +4,7 @@ use std::{
     io::{stdin, stdout, Write},
 };
 
-use crate::scanner::Scanner;
+use crate::{scanner::Scanner, token::{Token, TokenType}};
 
 pub struct Lox {
     had_error: bool,
@@ -55,6 +55,16 @@ impl Lox {
 
     pub fn error<S: Into<String> + Display>(line: i32, message: S) -> String {
         Lox::report(line, String::from(""), message.to_string())
+    }
+
+    pub fn error_token<S: Into<String> + Display>(token: Token, message: S) -> String {
+        let at = if token.is(TokenType::Eof) {
+            " at end ".to_string()
+        } else {
+            format!(" at '{}'", token.lexeme())
+        };
+
+        Lox::report(token.line(), at, message.to_string())
     }
 
     fn report(line: i32, at: String, message: String) -> String {
