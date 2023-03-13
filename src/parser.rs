@@ -14,8 +14,8 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    fn expression(&mut self) -> Expr {
-        self.equality()
+    fn expression(&mut self) -> Result<Expr, String> {
+        Ok(self.equality()?)
     }
 
     fn equality(&mut self) -> Result<Expr, String> {
