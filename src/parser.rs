@@ -18,12 +18,12 @@ impl Parser {
         self.equality()
     }
 
-    fn equality(&mut self) -> Expr {
-        let mut expr = self.comparison();
+    fn equality(&mut self) -> Result<Expr, String> {
+        let mut expr = self.comparison()?;
 
         while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
-            let operator = self.previous();
-            let right = Box::new(self.comparison());
+            let operator = self.previous()?;
+            let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
                 operator,
                 left: Box::new(expr),
@@ -31,7 +31,7 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
     fn comparison(&mut self) -> Result<Expr, String> {
@@ -52,7 +52,7 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
     fn term(&mut self) -> Result<Expr, String> {
@@ -68,7 +68,7 @@ impl Parser {
             }
         }
 
-        expr
+        Ok(expr)
     }
 
     fn factor(&mut self) -> Result<Expr, String> {
