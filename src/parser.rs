@@ -71,12 +71,12 @@ impl Parser {
         expr
     }
 
-    fn factor(&mut self) -> Expr {
-        let mut expr = self.unary();
+    fn factor(&mut self) -> Result<Expr, String> {
+        let mut expr = self.unary()?;
 
         while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
-            let operator = self.previous();
-            let right = Box::new(self.unary());
+            let operator = self.previous()?;
+            let right = Box::new(self.unary()?);
             expr = Expr::Binary {
                 operator,
                 left: Box::new(expr),
@@ -84,12 +84,12 @@ impl Parser {
             };
         }
 
-        expr
+        Ok(expr)
     }
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
-            let operator = self.previous();
+            let operator = self.previous()?;
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
         }
@@ -163,7 +163,7 @@ impl Parser {
         &self.tokens[self.current]
     }
 
-    fn previous(&self) -> Token {
+    fn previous(&self) -> Result<Token, String> {
         self.tokens[self.current - 1].clone()
     }
 
