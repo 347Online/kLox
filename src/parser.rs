@@ -122,17 +122,22 @@ impl Parser {
 
     fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, String> {
         if self.check(kind) {
-            return self.advance()
+            return Ok(self.advance())
         }
 
-        Err(Lox::error_token( ))
+        Err(Parser::error(self.peek(), message))
     }
 
     fn check(&self, kind: TokenType) -> bool {
         !self.is_at_end() && self.peek().is(kind)
     }
 
-    fn advance(&mut self) -> Token {}
+    fn advance(&mut self) -> Token {
+        if !self.is_at_end() {
+            self.current += 1;
+        }
+        self.previous()
+    }
 
     fn advance_if(&mut self, kinds: Vec<TokenType>) -> bool {
         for kind in kinds {
@@ -155,5 +160,23 @@ impl Parser {
 
     fn previous(&self) -> Token {
         self.tokens[self.current - 1]
+    }
+
+    fn error(token: Token, message: String) -> String {
+        Lox::error_token(token, message)
+        // Consider refactoring to return some custom error structure
+        // For now continuing to return a string
+    }
+
+    fn sync(&mut self) {
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().is(TokenType::Semicolon) {
+                return;
+            }
+
+            match peek
+        }
     }
 }
