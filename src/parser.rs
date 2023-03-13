@@ -87,14 +87,14 @@ impl Parser {
         expr
     }
 
-    fn unary(&mut self) -> Expr {
+    fn unary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous();
-            let right = Box::new(self.unary());
-            return Expr::Unary { operator, right };
+            let right = Box::new(self.unary()?);
+            return Ok(Expr::Unary { operator, right });
         }
 
-        self.primary()
+        Ok(self.primary()?)
     }
 
     fn primary(&mut self) -> Result<Expr, String> {
