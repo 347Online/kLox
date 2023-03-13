@@ -22,7 +22,7 @@ impl Parser {
         let mut expr = self.comparison()?;
 
         while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
-            let operator = self.previous()?;
+            let operator = self.previous();
             let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
                 operator,
@@ -43,7 +43,7 @@ impl Parser {
             TokenType::Less,
             TokenType::LessEqual,
         ]) {
-            let operator = self.previous()?;
+            let operator = self.previous();
             let right = Box::new(self.term()?);
             expr = Expr::Binary {
                 operator,
@@ -59,7 +59,7 @@ impl Parser {
         let mut expr = self.factor()?;
 
         while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
-            let operator = self.previous()?;
+            let operator = self.previous();
             let right = Box::new(self.factor()?);
             expr = Expr::Binary {
                 operator,
@@ -75,7 +75,7 @@ impl Parser {
         let mut expr = self.unary()?;
 
         while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
-            let operator = self.previous()?;
+            let operator = self.previous();
             let right = Box::new(self.unary()?);
             expr = Expr::Binary {
                 operator,
@@ -89,7 +89,7 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
-            let operator = self.previous()?;
+            let operator = self.previous();
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
         }
@@ -113,7 +113,7 @@ impl Parser {
         }
 
         if self.advance_if(vec![TokenType::LeftParen]) {
-            let expr = self.expression();
+            let expr = self.expression()?;
             self.consume(
                 TokenType::RightParen,
                 String::from("Expect ')' after expression."),
