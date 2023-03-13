@@ -1,6 +1,7 @@
 use crate::{
     expr::Expr,
-    token::{Token, TokenType, Literal}, lox::Lox,
+    lox::Lox,
+    token::{Literal, Token, TokenType},
 };
 
 pub struct Parser {
@@ -98,23 +99,26 @@ impl Parser {
 
     fn primary(&mut self) -> Expr {
         if self.advance_if(vec![TokenType::False]) {
-            return Expr::Literal(Literal::Bool(false))
+            return Expr::Literal(Literal::Bool(false));
         }
         if self.advance_if(vec![TokenType::True]) {
-            return Expr::Literal(Literal::Bool(true))
+            return Expr::Literal(Literal::Bool(true));
         }
         if self.advance_if(vec![TokenType::Nil]) {
-            return Expr::Literal(Literal::Nil)
+            return Expr::Literal(Literal::Nil);
         }
 
         if self.advance_if(vec![TokenType::Number, TokenType::String]) {
-            return Expr::Literal(self.previous().literal())
+            return Expr::Literal(self.previous().literal());
         }
 
         if self.advance_if(vec![TokenType::LeftParen]) {
             let expr = self.expression();
-            self.consume(TokenType::RightParen, String::from("Expect ')' after expression."));
-            return Expr::Grouping(Box::new(expr))
+            self.consume(
+                TokenType::RightParen,
+                String::from("Expect ')' after expression."),
+            );
+            return Expr::Grouping(Box::new(expr));
         }
 
         panic!()
@@ -122,7 +126,7 @@ impl Parser {
 
     fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, String> {
         if self.check(kind) {
-            return Ok(self.advance())
+            return Ok(self.advance());
         }
 
         Err(Parser::error(self.peek(), message))
@@ -176,7 +180,20 @@ impl Parser {
                 return;
             }
 
-            //Incomplete
+            match self.peek().kind() {
+                TokenType::Class
+                | TokenType::Fun
+                | TokenType::Var
+                | TokenType::For
+                | TokenType::If
+                | TokenType::While
+                | TokenType::Print
+                | TokenType::Return => return,
+
+                _ => (),
+            }
+
+            self.advance();
         }
     }
 }
