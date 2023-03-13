@@ -22,7 +22,6 @@ impl Parser {
                 Err(message)
             }
         }
-        
     }
 
     fn expression(&mut self) -> Result<Expr, String> {
@@ -128,12 +127,16 @@ impl Parser {
             self.consume(
                 TokenType::RightParen,
                 String::from("Expect ')' after expression."),
-            ).unwrap();
+            )
+            .unwrap();
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
         // panic!()
-        Err(Parser::error(self.peek(), String::from("Expect expression")))
+        Err(Parser::error(
+            self.peek(),
+            String::from("Expect expression"),
+        ))
     }
 
     fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, String> {

@@ -5,6 +5,7 @@ use std::{
 };
 
 use crate::{
+    parser::Parser,
     scanner::Scanner,
     token::{Token, TokenType},
 };
@@ -45,13 +46,16 @@ impl Lox {
         Ok(())
     }
 
-    pub fn run(&mut self, source: String) -> Result<(), String> {
+    fn run(&mut self, source: String) -> Result<(), String> {
         let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens()?;
 
-        for token in tokens {
-            println!("{:?}", token);
-        }
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse()?;
+
+        println!("AST: {:?}", ast);
+
+        // if hadError???
 
         Ok(())
     }
