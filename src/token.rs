@@ -102,7 +102,7 @@ impl Token {
     }
 
     pub fn lexeme(&self) -> String {
-        self.lexeme
+        self.lexeme.clone()
     }
 
     pub fn literal(&self) -> Literal {
