@@ -14,8 +14,19 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
+    pub fn parse(&mut self) -> Result<Expr, String> {
+        match self.expression() {
+            Ok(expr) => Ok(expr),
+            Err(message) => {
+                println!("{}", &message);
+                Err(message)
+            }
+        }
+        
+    }
+
     fn expression(&mut self) -> Result<Expr, String> {
-        Ok(self.equality()?)
+        self.equality()
     }
 
     fn equality(&mut self) -> Result<Expr, String> {
@@ -94,7 +105,7 @@ impl Parser {
             return Ok(Expr::Unary { operator, right });
         }
 
-        Ok(self.primary()?)
+        self.primary()
     }
 
     fn primary(&mut self) -> Result<Expr, String> {
