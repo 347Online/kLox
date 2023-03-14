@@ -1,4 +1,4 @@
-use crate::{expr::Expr, token::{Value, TokenType}};
+use crate::{expr::Expr, token::{Value, TokenType, BinOp}};
 
 #[derive(Default)]
 pub struct Interpreter;
@@ -16,6 +16,12 @@ impl Interpreter {
         match expr {
             Expr::Grouping(sub_expr) => Interpreter::evaluate(*sub_expr),
 
+            Expr::Literal(value) => {
+                Ok(value)
+            }
+
+            Expr::Unary { operator, right } => todo!(),
+
             Expr::Binary {
                 operator,
                 left,
@@ -26,7 +32,12 @@ impl Interpreter {
 
                 if let Value::Number(left_num) = left {
                     if let Value::Number(right_num) = right {
-                        return Ok(Value::Number(left_num + right_num))
+
+                        match operator {
+                            BinOp::Add => return Ok(Value::Number(left_num + right_num)),
+                            BinOp::Subtract => return Ok(Value::Number(left_num - right_num)),
+                            _ => unimplemented!()
+                        }
                     }
                 }
 
@@ -40,8 +51,6 @@ impl Interpreter {
 
                 unimplemented!()
             }
-            Expr::Literal(literal) => todo!(),
-            Expr::Unary { operator, right } => todo!(),
         }
     }
 }
