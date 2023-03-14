@@ -58,7 +58,7 @@ impl Display for TokenType {
 }
 
 #[derive(Clone, Debug)]
-pub enum Literal {
+pub enum Value {
     Bool(bool),
     Identifier { name: String },
     Number(f64),
@@ -68,7 +68,7 @@ pub enum Literal {
     Nil,
 }
 
-impl Display for Literal {
+impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "TODO: <Literal>")
     }
@@ -78,7 +78,7 @@ impl Display for Literal {
 pub struct Token {
     kind: TokenType,
     lexeme: String,
-    literal: Literal,
+    literal: Value,
     line: i32,
 }
 
@@ -86,7 +86,7 @@ impl Token {
     pub fn new<S: Into<String> + Display>(
         kind: TokenType,
         lexeme: S,
-        literal: Literal,
+        literal: Value,
         line: i32,
     ) -> Token {
         Token {
@@ -109,7 +109,7 @@ impl Token {
         self.lexeme.clone()
     }
 
-    pub fn literal(&self) -> Literal {
+    pub fn literal(&self) -> Value {
         self.literal.clone()
     }
 

@@ -27,7 +27,7 @@ impl Scanner {
         }
 
         self.tokens
-            .push(Token::new(TokenType::Eof, "", Literal::Empty, self.line));
+            .push(Token::new(TokenType::Eof, "", Value::Empty, self.line));
         Ok(self.tokens.clone())
     }
 
@@ -94,7 +94,7 @@ impl Scanner {
         let token = Token::new(
             TokenType::String,
             string_value.clone(),
-            Literal::String(string_value),
+            Value::String(string_value),
             self.line,
         );
         self.tokens.push(token);
@@ -135,7 +135,7 @@ impl Scanner {
         let token = Token::new(
             TokenType::Number,
             number_string,
-            Literal::Number(value),
+            Value::Number(value),
             self.line,
         );
         self.tokens.push(token);
@@ -183,14 +183,14 @@ impl Scanner {
             Token::new(
                 kind,
                 ident_string.clone(),
-                Literal::Keyword(ident_string),
+                Value::Keyword(ident_string),
                 self.line,
             )
         } else {
             Token::new(
                 TokenType::Identifier,
                 ident_string.clone(),
-                Literal::Identifier { name: ident_string },
+                Value::Identifier { name: ident_string },
                 self.line,
             )
         };
@@ -200,7 +200,7 @@ impl Scanner {
     }
 
     fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
-        let literal = Literal::Empty;
+        let literal = Value::Empty;
 
         let kind = match c {
             '(' => TokenType::LeftParen,

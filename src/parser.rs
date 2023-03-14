@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::Lox,
-    token::{Literal, Token, TokenType},
+    token::{Value, Token, TokenType},
 };
 
 pub struct Parser {
@@ -109,13 +109,13 @@ impl Parser {
 
     fn primary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::False]) {
-            return Ok(Expr::Literal(Literal::Bool(false)));
+            return Ok(Expr::Literal(Value::Bool(false)));
         }
         if self.advance_if(vec![TokenType::True]) {
-            return Ok(Expr::Literal(Literal::Bool(true)));
+            return Ok(Expr::Literal(Value::Bool(true)));
         }
         if self.advance_if(vec![TokenType::Nil]) {
-            return Ok(Expr::Literal(Literal::Nil));
+            return Ok(Expr::Literal(Value::Nil));
         }
 
         if self.advance_if(vec![TokenType::Number, TokenType::String]) {
