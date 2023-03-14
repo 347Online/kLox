@@ -26,7 +26,7 @@ impl Scanner {
         }
 
         self.tokens
-            .push(Token::new(TokenType::Eof, "", Value::Empty, self.line));
+            .push(Token::new(TokenType::Eof, "", Value::Nil, self.line));
         Ok(self.tokens.clone())
     }
 
@@ -200,7 +200,7 @@ impl Scanner {
     }
 
     fn create_token(&mut self, c: char, line: i32) -> Result<(), LoxError> {
-        let literal = Value::Empty;
+        let literal = Value::Nil;
 
         let kind = match c {
             '(' => TokenType::LeftParen,
