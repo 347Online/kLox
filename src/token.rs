@@ -83,7 +83,6 @@ pub enum Value {
     Identifier { name: String },
     Number(f64),
     String(String),
-    Empty,
     Keyword(String),
     Nil,
 }
