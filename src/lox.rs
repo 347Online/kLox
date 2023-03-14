@@ -17,6 +17,12 @@ pub enum LoxErrorKind {
     RuntimeError,
 }
 
+impl Display for LoxErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Debug)]
 pub struct LoxError {
     line: i32,
@@ -24,6 +30,20 @@ pub struct LoxError {
     at: String,
     kind: LoxErrorKind,
 }
+
+impl Display for LoxError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[line {}] {}{}: {}",
+            self.line,
+            self.kind,
+            self.at,
+            self.message
+        )
+    }
+}
+
 
 impl LoxError {
     pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> Self {
@@ -99,7 +119,7 @@ impl Lox {
 
     pub fn error_token<S: Into<String>>(token: &Token, message: S) -> LoxError {
         let at = if token.is(TokenType::Eof) {
-            " at end ".to_string()
+            " at end".to_string()
         } else {
             format!(" at '{}'", token.lexeme())
         };
@@ -109,17 +129,5 @@ impl Lox {
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
         LoxError::at(line, at, message, kind)
-    }
-}
-
-impl Display for LoxError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "[line {}] Error{}: {}",
-            self.line,
-            String::new(),
-            self.message
-        )
     }
 }
