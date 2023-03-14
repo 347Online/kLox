@@ -29,8 +29,7 @@ impl Interpreter {
                         if let Value::Number(value) = right {
                             Ok(Value::Number(-value))
                         } else {
-                            // This should be a runtime error
-                            panic!()
+                            todo!("Runtime error")
                         }
                     }
                 }

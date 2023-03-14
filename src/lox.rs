@@ -7,8 +7,15 @@ use std::{
 use crate::{
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType}, interpreter::Interpreter,
+    token::{Token, TokenType, Value}, interpreter::Interpreter,
 };
+
+pub enum LoxError {
+    SyntaxError(String),
+    RuntimeError(String),
+}
+
+type LoxResult = Result<Value, LoxError>;
 
 pub struct Lox {
     had_error: bool,
@@ -65,18 +72,18 @@ impl Lox {
         Ok(())
     }
 
-    pub fn error<S: Into<String> + Display>(line: i32, message: S) -> String {
-        Lox::report(line, String::from(""), message.to_string())
+    pub fn error<S: Into<String>>(line: i32, message: S) -> String {
+        Lox::report(line, String::from(""), message.into())
     }
 
-    pub fn error_token<S: Into<String> + Display>(token: &Token, message: S) -> String {
+    pub fn error_token<S: Into<String>>(token: &Token, message: S) -> String {
         let at = if token.is(TokenType::Eof) {
             " at end ".to_string()
         } else {
             format!(" at '{}'", token.lexeme())
         };
 
-        Lox::report(token.line(), at, message.to_string())
+        Lox::report(token.line(), at, message.into())
     }
 
     fn report(line: i32, at: String, message: String) -> String {
