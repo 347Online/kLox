@@ -1,8 +1,9 @@
-pub mod expr;
 pub mod lox;
-pub mod parser;
-pub mod scanner;
 pub mod token;
+pub mod scanner;
+pub mod expr;
+pub mod parser;
+pub mod interpreter;
 
 use lox::*;
 use std::env;
