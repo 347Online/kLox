@@ -13,4 +13,5 @@ pub enum Expr {
         operator: UnOp,
         right: Box<Expr>,
     },
+    Empty
 }
