@@ -1,7 +1,6 @@
-use crate::{lox::Lox, token::*};
+use crate::{lox::{Lox, LoxError, LoxErrorKind}, token::*};
 
 pub struct Scanner {
-    // source_string: String,
     source: Vec<char>,
     tokens: Vec<Token>,
     start: usize,
@@ -20,7 +19,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, LoxError> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token()?;
@@ -31,7 +30,7 @@ impl Scanner {
         Ok(self.tokens.clone())
     }
 
-    fn scan_token(&mut self) -> Result<Vec<Token>, String> {
+    fn scan_token(&mut self) -> Result<Vec<Token>, LoxError> {
         let c = self.advance();
 
         self.create_token(c, self.line)?;
@@ -74,7 +73,7 @@ impl Scanner {
         true
     }
 
-    fn string(&mut self) -> Result<(), String> {
+    fn string(&mut self) -> Result<(), LoxError> {
         let mut string_value = String::new();
 
         while self.peek() != Some('"') && !self.is_at_end() {
@@ -85,7 +84,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(Lox::error(self.line, "Unterminated string"));
+            return Err(Lox::error(self.line, "Unterminated string", LoxErrorKind::SyntaxError));
         }
 
         // The closing "
@@ -102,7 +101,7 @@ impl Scanner {
         Ok(())
     }
 
-    fn number(&mut self, first_digit: char) -> Result<(), String> {
+    fn number(&mut self, first_digit: char) -> Result<(), LoxError> {
         let mut number_string = String::from(first_digit);
 
         macro_rules! add_digits {
@@ -143,7 +142,7 @@ impl Scanner {
         Ok(())
     }
 
-    fn identifier(&mut self, first: char) -> Result<(), String> {
+    fn identifier(&mut self, first: char) -> Result<(), LoxError> {
         fn keyword_token(name: &str) -> Option<TokenType> {
             let kind = match name {
                 "and" => TokenType::And,
@@ -171,6 +170,7 @@ impl Scanner {
 
         let mut ident_string = String::from(first);
 
+        // TODO: Instead of unwrapping here should return a LoxError on failure
         while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric()
             || self.peek().unwrap() == '_'
         {
@@ -199,7 +199,7 @@ impl Scanner {
         Ok(())
     }
 
-    fn create_token(&mut self, c: char, line: i32) -> Result<(), String> {
+    fn create_token(&mut self, c: char, line: i32) -> Result<(), LoxError> {
         let literal = Value::Empty;
 
         let kind = match c {
@@ -282,7 +282,7 @@ impl Scanner {
                 return Ok(());
             }
 
-            _ => return Err(Lox::error(line, "Unexpected character")),
+            _ => return Err(Lox::error(line, "Unexpected character", LoxErrorKind::SyntaxError)),
         };
 
         let token = Token::new(kind, c, literal, line);

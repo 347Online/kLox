@@ -17,8 +17,8 @@ fn main() -> Result<(), String> {
     let mut lox = Lox::new();
 
     match len {
-        1 => Ok(lox.run_prompt()?),
-        2 => Ok(lox.run_file(args[1].clone())?),
+        1 => lox.run_prompt().map_err(|e| e.to_string()),
+        2 => lox.run_file(args[1].clone()).map_err(|e| e.to_string()),
         _ => Err(String::from("Usage: klox [script]")),
     }
 }

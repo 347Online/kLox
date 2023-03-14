@@ -5,14 +5,39 @@ use std::{
 };
 
 use crate::{
+    interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType, Value}, interpreter::Interpreter,
+    token::{Token, TokenType, Value},
 };
 
-pub enum LoxError {
-    SyntaxError(String),
-    RuntimeError(String),
+#[derive(Debug)]
+pub enum LoxErrorKind {
+    SyntaxError,
+    RuntimeError,
+}
+
+#[derive(Debug)]
+pub struct LoxError {
+    line: i32,
+    message: String,
+    at: String,
+    kind: LoxErrorKind,
+}
+
+impl LoxError {
+    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> Self {
+        LoxError::at(line, "", &message.into(), kind)
+    }
+
+    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> Self {
+        LoxError {
+            line,
+            message: message.into(),
+            at: at.into(),
+            kind,
+        }
+    }
 }
 
 type LoxResult = Result<Value, LoxError>;
@@ -26,14 +51,14 @@ impl Lox {
         Lox { had_error: false }
     }
 
-    pub fn run_file(&mut self, path: String) -> Result<(), String> {
+    pub fn run_file(&mut self, path: String) -> Result<(), LoxError> {
         let code = read_to_string(path).unwrap();
         self.run(code)?;
 
         Ok(())
     }
 
-    pub fn run_prompt(&mut self) -> Result<(), String> {
+    pub fn run_prompt(&mut self) -> Result<(), LoxError> {
         let stdin = stdin();
         let mut stdout = stdout();
         loop {
@@ -53,7 +78,7 @@ impl Lox {
         Ok(())
     }
 
-    fn run(&mut self, source: String) -> Result<(), String> {
+    fn run(&mut self, source: String) -> Result<(), LoxError> {
         let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens()?;
 
@@ -72,30 +97,44 @@ impl Lox {
         Ok(())
     }
 
-    pub fn error<S: Into<String>>(line: i32, message: S) -> String {
-        Lox::report(line, String::from(""), message.into())
+    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
+        Lox::report(line, String::from(""), message.into(), kind)
     }
 
-    pub fn error_token<S: Into<String>>(token: &Token, message: S) -> String {
+    pub fn error_token<S: Into<String>>(token: &Token, message: S) -> LoxError {
         let at = if token.is(TokenType::Eof) {
             " at end ".to_string()
         } else {
             format!(" at '{}'", token.lexeme())
         };
 
-        Lox::report(token.line(), at, message.into())
+        Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
     }
 
-    fn report(line: i32, at: String, message: String) -> String {
-        let formatted_message = format!("[line {}] Error{}: {}", line, at, message);
-        println!("{formatted_message}");
-        // self.had_error = true;
-        formatted_message
+    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
+        LoxError::at(line, at, message, kind)
+
+        // let formatted_message = format!("[line {}] Error{}: {}", line, at, message);
+        // println!("{formatted_message}");
+        // // self.had_error = true;
+        // formatted_message
     }
 }
 
 impl Default for Lox {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Display for LoxError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[line] {} Error{}: {}",
+            self.line,
+            String::new(),
+            self.message
+        )
     }
 }
