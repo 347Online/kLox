@@ -147,20 +147,19 @@ impl Parser {
             let expr = self.expression()?;
             self.consume(
                 TokenType::RightParen,
-                String::from("Expect ')' after expression."),
+                "Expect ')' after expression.",
             )
             .unwrap();
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        // panic!()
         Err(Parser::error(
             self.peek(),
-            String::from("Expect expression"),
+            "Expect expression",
         ))
     }
 
-    fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, LoxError> {
+    fn consume<S: Into<String>>(&mut self, kind: TokenType, message: S) -> Result<Token, LoxError> {
         if self.check(kind) {
             return Ok(self.advance());
         }
@@ -202,10 +201,8 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
-    fn error(token: &Token, message: String) -> LoxError {
+    fn error<S: Into<String>>(token: &Token, message: S) -> LoxError {
         Lox::error_token(token, message)
-        // Consider refactoring to return some custom error structure
-        // For now continuing to return a string
     }
 
     fn sync(&mut self) {

@@ -114,7 +114,7 @@ impl Lox {
     }
 
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
-        Lox::report(line, String::from(""), message.into(), kind)
+        Lox::report(line, "", &message.into(), kind)
     }
 
     pub fn error_token<S: Into<String>>(token: &Token, message: S) -> LoxError {
