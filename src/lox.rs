@@ -8,7 +8,7 @@ use crate::{
     interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType, Value}, expr::Expr,
+    token::{Token, TokenType}, expr::Expr,
 };
 
 #[derive(Debug)]

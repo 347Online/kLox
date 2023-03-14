@@ -1,4 +1,4 @@
-use crate::{expr::Expr, token::{Value, TokenType, BinOp, UnOp}, lox::LoxError};
+use crate::{expr::Expr, token::{Value, BinOp, UnOp}, lox::LoxError};
 
 #[derive(Default)]
 pub struct Interpreter;
