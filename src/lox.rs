@@ -53,7 +53,7 @@ impl Lox {
         let mut parser = Parser::new(tokens);
         let ast = parser.parse()?;
 
-        println!("AST: {:?}", ast);
+        // println!("AST: {:?}", ast);
 
         let mut interpreter = Interpreter::new();
         let result = interpreter.interpret(ast)?;

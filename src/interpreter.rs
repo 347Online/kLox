@@ -1,4 +1,4 @@
-use crate::{expr::Expr, token::{Value, TokenType, BinOp}};
+use crate::{expr::Expr, token::{Value, TokenType, BinOp, UnOp}};
 
 #[derive(Default)]
 pub struct Interpreter;
@@ -20,7 +20,21 @@ impl Interpreter {
                 Ok(value)
             }
 
-            Expr::Unary { operator, right } => todo!(),
+            Expr::Unary { operator, right } => {
+                let right = Interpreter::evaluate(*right)?;
+
+                match operator {
+                    UnOp::Not => todo!(),
+                    UnOp::Negative => {
+                        if let Value::Number(value) = right {
+                            Ok(Value::Number(-value))
+                        } else {
+                            // This should be a runtime error
+                            panic!()
+                        }
+                    }
+                }
+            },
 
             Expr::Binary {
                 operator,
@@ -36,7 +50,9 @@ impl Interpreter {
                         match operator {
                             BinOp::Add => return Ok(Value::Number(left_num + right_num)),
                             BinOp::Subtract => return Ok(Value::Number(left_num - right_num)),
-                            _ => unimplemented!()
+                            BinOp::Multiply => return Ok(Value::Number(left_num * right_num)),
+                            BinOp::Divide => return Ok(Value::Number(left_num / right_num)),
+                            _ => todo!()
                         }
                     }
                 }
