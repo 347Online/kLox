@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::Lox,
-    token::{Value, Token, TokenType},
+    token::{Value, Token, TokenType, BinOp, UnOp},
 };
 
 pub struct Parser {
@@ -32,7 +32,12 @@ impl Parser {
         let mut expr = self.comparison()?;
 
         while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
-            let operator = self.previous();
+            let operator = match self.previous().kind() {
+                TokenType::BangEqual => BinOp::NotEqual,
+                TokenType::EqualEqual => BinOp::Equal,
+
+                _ => unreachable!()
+            };
             let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
                 operator,
@@ -53,7 +58,14 @@ impl Parser {
             TokenType::Less,
             TokenType::LessEqual,
         ]) {
-            let operator = self.previous();
+            let operator = match self.previous().kind() {
+                TokenType::Greater => BinOp::Greater,
+                TokenType::GreaterEqual => BinOp::GreaterEqual,
+                TokenType::Less => BinOp::Less,
+                TokenType::LessEqual => BinOp::LessEqual,
+
+                _ => unreachable!()
+            };
             let right = Box::new(self.term()?);
             expr = Expr::Binary {
                 operator,
@@ -69,7 +81,12 @@ impl Parser {
         let mut expr = self.factor()?;
 
         while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
-            let operator = self.previous();
+            let operator = match self.previous().kind() {
+                TokenType::Minus => BinOp::Subtract,
+                TokenType::Plus => BinOp::Add,
+
+                _ => unreachable!()
+            };
             let right = Box::new(self.factor()?);
             expr = Expr::Binary {
                 operator,
@@ -85,7 +102,12 @@ impl Parser {
         let mut expr = self.unary()?;
 
         while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
-            let operator = self.previous();
+            let operator = match self.previous().kind() {
+                TokenType::Slash => BinOp::Divide,
+                TokenType::Star => BinOp::Multiply,
+
+                _ => unreachable!()
+            };
             let right = Box::new(self.unary()?);
             expr = Expr::Binary {
                 operator,
@@ -99,7 +121,12 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
-            let operator = self.previous();
+            let operator = match self.previous().kind() {
+                TokenType::Bang => UnOp::Not,
+                TokenType::Minus => UnOp::Negative,
+
+                _ => unreachable!()
+            };
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
         }

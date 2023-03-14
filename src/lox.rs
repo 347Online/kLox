@@ -7,7 +7,7 @@ use std::{
 use crate::{
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType},
+    token::{Token, TokenType}, interpreter::Interpreter,
 };
 
 pub struct Lox {
@@ -53,7 +53,12 @@ impl Lox {
         let mut parser = Parser::new(tokens);
         let ast = parser.parse()?;
 
-        println!("AST: {:?}", ast);
+        // println!("AST: {:?}", ast);
+
+        let mut interpreter = Interpreter::new();
+        let result = interpreter.interpret(ast)?;
+
+        println!("Result: {}", result);
 
         // if hadError???
 

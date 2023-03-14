@@ -1,5 +1,25 @@
 use std::fmt::Display;
 
+#[derive(Debug)]
+pub enum BinOp {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    NotEqual,
+    Equal,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual
+}
+
+#[derive(Debug)]
+pub enum UnOp {
+    Not,
+    Negative
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // Single-character tokens.
@@ -70,7 +90,7 @@ pub enum Value {
 
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TODO: <Literal>")
+        write!(f, "{self:?}")
     }
 }
 
