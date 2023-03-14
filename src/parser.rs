@@ -15,13 +15,7 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, LoxError> {
-        match self.expression() {
-            Ok(expr) => Ok(expr),
-            Err(error) => {
-                println!("{}", &error);
-                Err(error)
-            }
-        }
+        self.expression()
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
