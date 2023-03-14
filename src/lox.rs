@@ -40,8 +40,6 @@ impl LoxError {
     }
 }
 
-type LoxResult = Result<Value, LoxError>;
-
 pub struct Lox;
 
 impl Lox {
