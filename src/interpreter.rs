@@ -14,6 +14,8 @@ impl Interpreter {
 
     fn evaluate(expr: Expr) -> Result<Value, LoxError> {
         match expr {
+            Expr::Empty => Ok(Value::Nil),
+
             Expr::Grouping(sub_expr) => Interpreter::evaluate(*sub_expr),
 
             Expr::Literal(value) => {
