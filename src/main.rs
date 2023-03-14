@@ -8,6 +8,8 @@ use lox::*;
 use std::env;
 
 fn main() -> Result<(), String> {
+    println!("klox, yet another Lox implementation, Katie Janzen 2023");
+
     let args: Vec<String> = env::args().collect();
     let len = args.len();
 
@@ -16,6 +18,6 @@ fn main() -> Result<(), String> {
     match len {
         1 => Ok(lox.run_prompt()?),
         2 => Ok(lox.run_file(args[1].clone())?),
-        _ => Err(String::from("Usage: rlox-vm [script]")),
+        _ => Err(String::from("Usage: klox [script]")),
     }
 }
