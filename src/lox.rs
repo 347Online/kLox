@@ -8,7 +8,7 @@ use crate::{
     interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType, Value},
+    token::{Token, TokenType, Value}, expr::Expr,
 };
 
 #[derive(Debug)]
@@ -42,23 +42,18 @@ impl LoxError {
 
 type LoxResult = Result<Value, LoxError>;
 
-pub struct Lox {
-    had_error: bool,
-}
+pub struct Lox;
 
 impl Lox {
-    pub fn new() -> Lox {
-        Lox { had_error: false }
-    }
 
-    pub fn run_file(&mut self, path: String) -> Result<(), LoxError> {
+    pub fn run_file(path: String) -> Result<(), LoxError> {
         let code = read_to_string(path).unwrap();
-        self.run(code)?;
+        Lox::run(code)?;
 
         Ok(())
     }
 
-    pub fn run_prompt(&mut self) -> Result<(), LoxError> {
+    pub fn run_prompt() -> Result<(), LoxError> {
         let stdin = stdin();
         let mut stdout = stdout();
         loop {
@@ -72,27 +67,30 @@ impl Lox {
                 break;
             }
 
-            self.run(line)?;
+            Lox::run(line)?;
         }
 
         Ok(())
     }
 
-    fn run(&mut self, source: String) -> Result<(), LoxError> {
+    fn run(source: String) -> Result<(), LoxError> {
         let mut scanner = Scanner::new(source);
-        let tokens = scanner.scan_tokens()?;
+
+        let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
+            println!("{e}");
+            vec![]
+        });
 
         let mut parser = Parser::new(tokens);
-        let ast = parser.parse()?;
-
-        // println!("AST: {:?}", ast);
+        let ast = parser.parse().unwrap_or_else(|e| {
+            println!("{e}");
+            Expr::Empty
+        });
 
         let mut interpreter = Interpreter::new();
         let result = interpreter.interpret(ast)?;
 
         println!("Result: {}", result);
-
-        // if hadError???
 
         Ok(())
     }
@@ -113,17 +111,6 @@ impl Lox {
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
         LoxError::at(line, at, message, kind)
-
-        // let formatted_message = format!("[line {}] Error{}: {}", line, at, message);
-        // println!("{formatted_message}");
-        // // self.had_error = true;
-        // formatted_message
-    }
-}
-
-impl Default for Lox {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -131,7 +118,7 @@ impl Display for LoxError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[line] {} Error{}: {}",
+            "[line {}] Error{}: {}",
             self.line,
             String::new(),
             self.message
