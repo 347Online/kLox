@@ -48,6 +48,7 @@ impl Interpreter {
                 let right = Interpreter::evaluate(*right)?;
 
                 match (operator, left, right) {
+                    // Arithmetic
                     (BinOp::Subtract, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
@@ -60,8 +61,32 @@ impl Interpreter {
                     (BinOp::Add, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
+
+                    // String Concatenation
                     (BinOp::Add, Value::String(left), Value::String(right)) => {
                         Ok(Value::String(left + &right))
+                    }
+
+                    // Comparison
+                    (BinOp::Greater, Value::Number(left), Value::Number(right)) => {
+                        Ok(Value::Bool(left > right))
+                    }
+                    (BinOp::GreaterEqual, Value::Number(left), Value::Number(right)) => {
+                        Ok(Value::Bool(left >= right))
+                    }
+                    (BinOp::Less, Value::Number(left), Value::Number(right)) => {
+                        Ok(Value::Bool(left < right))
+                    }
+                    (BinOp::LessEqual, Value::Number(left), Value::Number(right)) => {
+                        Ok(Value::Bool(left <= right))
+                    }
+
+                    // Equality
+                    (BinOp::Equal, left, right) => {
+                        Ok(Value::Bool(Interpreter::is_equal(left, right)))
+                    }
+                    (BinOp::NotEqual, left, right) => {
+                        Ok(Value::Bool(!Interpreter::is_equal(left, right)))
                     }
 
                     _ => todo!("Runtime error, bad comparison"),
@@ -75,6 +100,15 @@ impl Interpreter {
             Value::Nil => false,
             Value::Bool(boolean) => boolean,
             _ => true,
+        }
+    }
+
+    fn is_equal(left: Value, right: Value) -> bool {
+        match (&left, &right) {
+            (Value::Nil, Value::Nil) => true,
+            (Value::Nil, _) => false,
+
+            _ => left == right
         }
     }
 }

@@ -77,7 +77,7 @@ impl Display for TokenType {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Bool(bool),
     Identifier { name: String },
