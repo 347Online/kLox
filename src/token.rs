@@ -26,6 +26,18 @@ pub struct BinOp {
     token: Token,
 }
 
+impl BinOp {
+    fn new(kind: BinOpType, token: Token) -> Self {
+        BinOp { kind, token }
+    }
+}
+
+impl UnOp {
+    fn new(kind: UnOpType, token: Token) -> Self {
+        UnOp { kind, token }
+    }
+}
+
 #[derive(Debug)]
 pub struct UnOp {
     kind: UnOpType,
