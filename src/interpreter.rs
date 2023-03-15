@@ -66,38 +66,6 @@ impl Interpreter {
 
                     _ => todo!(),
                 }
-
-                // match (left, right) {
-                //     (Value::Number(left_num), Value::Number(right_num)) => {
-                //         match operator {
-                //             BinOp::Add => return Ok(Value::Number(left_num + right_num)),
-                //             BinOp::Subtract => return Ok(Value::Number(left_num - right_num)),
-                //             BinOp::Multiply => return Ok(Value::Number(left_num * right_num)),
-                //             BinOp::Divide => return Ok(Value::Number(left_num / right_num)),
-                //             _ => todo!()
-                //         }
-                //     }
-
-                //     (Value::String(left_str), Value::String(right_str)) => {
-                //         match operator {
-                //             BinOp::Add => return Ok()
-                //         }
-                //     }
-                // }
-
-                // if let (Value::Number(left_num), Value::Number(right_num)) = (left, right) {
-                //     match operator {
-                //         BinOp::Add => return Ok(Value::Number(left_num + right_num)),
-                //         BinOp::Subtract => return Ok(Value::Number(left_num - right_num)),
-                //         BinOp::Multiply => return Ok(Value::Number(left_num * right_num)),
-                //         BinOp::Divide => return Ok(Value::Number(left_num / right_num)),
-                //         _ => todo!()
-                //     }
-                // } else if let (Value::String(left_str), Value::String(right_str)) = (left, right) {
-                //     let new_str = left_str + right_str.as_str();
-
-                //     return Ok(Value::String(new_str))
-                // }
             }
         }
     }
