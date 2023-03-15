@@ -1,6 +1,6 @@
 use crate::{
     expr::Expr,
-    lox::{Lox, LoxError},
+    lox::{LoxError},
     token::{BinOp, UnOp, Value},
 };
 
@@ -31,10 +31,10 @@ impl Interpreter {
                     UnOp::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
                     UnOp::Negative => {
                         if let Value::Number(value) = right {
-                            Ok(Value::Number(-value))
-                        } else {
-                            todo!("Runtime error")
+                            return Ok(Value::Number(-value))
                         }
+                        
+                        todo!("Runtime error")
                     }
                 }
             }
@@ -48,35 +48,23 @@ impl Interpreter {
                 let right = Interpreter::evaluate(*right)?;
 
                 match (operator, left, right) {
-                    // Subtraction
                     (BinOp::Subtract, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
-                    (BinOp::Subtract, _, _) => todo!("Runtime error"),
-
-                    // Division
                     (BinOp::Divide, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
-                    (BinOp::Divide, _, _) => todo!("Runtime error"),
-
-                    // Multiplication
                     (BinOp::Multiply, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
-                    (BinOp::Multiply, _, _) => todo!("Runtime error"),
-
-                    // Addition
                     (BinOp::Add, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
-                    // String concatenation
                     (BinOp::Add, Value::String(left), Value::String(right)) => {
                         Ok(Value::String(left + &right))
                     }
-                    (BinOp::Add, _, _) => todo!("Runtime error"),
 
-                    _ => todo!(),
+                    _ => todo!("Runtime error, bad comparison"),
                 }
             }
         }
