@@ -12,8 +12,21 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&mut self, expr: Expr) -> Result<Value, LoxError> {
-        Self::evaluate(expr)
+    pub fn interpret(&mut self, expr: Expr) -> Result<String, LoxError> {
+        Ok(Interpreter::output(Self::evaluate(expr)?))
+    }
+
+    fn output(value: Value) -> String {
+        match value {
+            Value::Nil => String::from("nil"),
+            Value::Number(number) => number
+                .to_string()
+                .strip_suffix(".0")
+                .map_or(number.to_string(), |s| s.to_string()),
+            Value::Bool(boolean) => boolean.to_string(),
+            Value::String(string) => string,
+            Value::Identifier { name } => todo!(),
+        }
     }
 
     fn evaluate(expr: Expr) -> Result<Value, LoxError> {

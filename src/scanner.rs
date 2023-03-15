@@ -186,21 +186,12 @@ impl Scanner {
 
         let name = ident_string.as_str();
 
-        let token = if let Some(kind) = keyword_token(name) {
-            Token::new(
-                kind,
-                ident_string.clone(),
-                Value::Keyword(ident_string),
-                self.line,
-            )
-        } else {
-            Token::new(
-                TokenType::Identifier,
-                ident_string.clone(),
-                Value::Identifier { name: ident_string },
-                self.line,
-            )
-        };
+        let token = Token::new(
+            TokenType::Identifier,
+            ident_string.clone(),
+            Value::Identifier { name: ident_string },
+            self.line,
+        );
         self.tokens.push(token);
 
         Ok(())
