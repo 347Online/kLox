@@ -30,11 +30,19 @@ impl BinOp {
     pub fn new(kind: BinOpType, token: Token) -> Self {
         BinOp { kind, token }
     }
+
+    pub fn kind(&self) -> BinOpType {
+        self.kind
+    }
 }
 
 impl UnOp {
     pub fn new(kind: UnOpType, token: Token) -> Self {
         UnOp { kind, token }
+    }
+
+    pub fn kind(&self) -> UnOpType {
+        self.kind
     }
 }
 

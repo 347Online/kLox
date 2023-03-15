@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::{Lox, LoxError, LoxErrorKind},
-    token::{BinOp, UnOp, Value},
+    token::{BinOpType, UnOpType, Value},
 };
 
 #[derive(Default)]
@@ -35,11 +35,12 @@ impl Interpreter {
             Expr::Literal(value) => Ok(value),
 
             Expr::Unary { operator, right } => {
+                let op_type = operator.kind();
                 let right = Interpreter::evaluate(*right)?;
 
-                match operator {
-                    UnOp::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
-                    UnOp::Negative => {
+                match op_type {
+                    UnOpType::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
+                    UnOpType::Negative => {
                         if let Value::Number(value) = right {
                             Ok(Value::Number(-value))
                         } else {
@@ -54,62 +55,63 @@ impl Interpreter {
                 left,
                 right,
             } => {
+                let op_type = operator.kind();
                 let left = Interpreter::evaluate(*left)?;
                 let right = Interpreter::evaluate(*right)?;
 
-                match (operator, left, right) {
+                match (op_type, left, right) {
                     // Arithmetic
-                    (BinOp::Subtract, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Subtract, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left - right))
                     }
-                    (BinOp::Divide, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Divide, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
-                    (BinOp::Multiply, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Multiply, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left * right))
                     }
-                    (BinOp::Add, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Add, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left + right))
                     }
 
                     // String Concatenation
-                    (BinOp::Add, Value::String(left), Value::String(right)) => {
+                    (BinOpType::Add, Value::String(left), Value::String(right)) => {
                         Ok(Value::String(left + &right))
                     }
 
                     // Comparison
-                    (BinOp::Greater, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Greater, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Bool(left > right))
                     }
-                    (BinOp::GreaterEqual, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::GreaterEqual, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Bool(left >= right))
                     }
-                    (BinOp::Less, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::Less, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Bool(left < right))
                     }
-                    (BinOp::LessEqual, Value::Number(left), Value::Number(right)) => {
+                    (BinOpType::LessEqual, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Bool(left <= right))
                     }
 
                     // Equality
-                    (BinOp::Equal, left, right) => {
+                    (BinOpType::Equal, left, right) => {
                         Ok(Value::Bool(Interpreter::is_equal(left, right)))
                     }
-                    (BinOp::NotEqual, left, right) => {
+                    (BinOpType::NotEqual, left, right) => {
                         Ok(Value::Bool(!Interpreter::is_equal(left, right)))
                     }
 
-                    (BinOp::Add, _, _) => Err(Interpreter::error(
+                    (BinOpType::Add, _, _) => Err(Interpreter::error(
                         "Operands must be two numbers or two strings.",
                     )),
                     (
-                        BinOp::Greater
-                        | BinOp::GreaterEqual
-                        | BinOp::Less
-                        | BinOp::LessEqual
-                        | BinOp::Subtract
-                        | BinOp::Divide
-                        | BinOp::Multiply,
+                        BinOpType::Greater
+                        | BinOpType::GreaterEqual
+                        | BinOpType::Less
+                        | BinOpType::LessEqual
+                        | BinOpType::Subtract
+                        | BinOpType::Divide
+                        | BinOpType::Multiply,
                         _,
                         _,
                     ) => Err(Interpreter::error("Operands must be numbers")),
