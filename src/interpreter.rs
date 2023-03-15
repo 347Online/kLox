@@ -1,6 +1,6 @@
 use crate::{
     expr::Expr,
-    lox::{LoxError},
+    lox::{Lox, LoxError, LoxErrorKind},
     token::{BinOp, UnOp, Value},
 };
 
@@ -31,10 +31,10 @@ impl Interpreter {
                     UnOp::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
                     UnOp::Negative => {
                         if let Value::Number(value) = right {
-                            return Ok(Value::Number(-value))
+                            Ok(Value::Number(-value))
+                        } else {
+                            Err(Interpreter::error("Operand must be a number."))
                         }
-                        
-                        todo!("Runtime error")
                     }
                 }
             }
@@ -89,7 +89,20 @@ impl Interpreter {
                         Ok(Value::Bool(!Interpreter::is_equal(left, right)))
                     }
 
-                    _ => todo!("Runtime error, bad comparison"),
+                    (BinOp::Add, _, _) => Err(Interpreter::error(
+                        "Operands must be two numbers or two strings.",
+                    )),
+                    (
+                        BinOp::Greater
+                        | BinOp::GreaterEqual
+                        | BinOp::Less
+                        | BinOp::LessEqual
+                        | BinOp::Subtract
+                        | BinOp::Divide
+                        | BinOp::Multiply,
+                        _,
+                        _,
+                    ) => Err(Interpreter::error("")),
                 }
             }
         }
@@ -107,8 +120,11 @@ impl Interpreter {
         match (&left, &right) {
             (Value::Nil, Value::Nil) => true,
             (Value::Nil, _) => false,
-
-            _ => left == right
+            _ => left == right,
         }
+    }
+
+    fn error<S: Into<String>>(message: S) -> LoxError {
+        Lox::error(-13, message, LoxErrorKind::RuntimeError)
     }
 }
