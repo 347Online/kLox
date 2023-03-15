@@ -102,7 +102,7 @@ impl Interpreter {
                         | BinOp::Multiply,
                         _,
                         _,
-                    ) => Err(Interpreter::error("")),
+                    ) => Err(Interpreter::error("Operands must be numbers")),
                 }
             }
         }
