@@ -1,4 +1,4 @@
-use crate::{expr::Expr, token::{Value, TokenType, BinOp, UnOp}};
+use crate::{expr::Expr, token::{Value, BinOp, UnOp}, lox::LoxError};
 
 #[derive(Default)]
 pub struct Interpreter;
@@ -8,12 +8,14 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&mut self, expr: Expr) -> Result<Value, String> {
+    pub fn interpret(&mut self, expr: Expr) -> Result<Value, LoxError> {
         Self::evaluate(expr)
     }
 
-    fn evaluate(expr: Expr) -> Result<Value, String> {
+    fn evaluate(expr: Expr) -> Result<Value, LoxError> {
         match expr {
+            Expr::Empty => Ok(Value::Nil),
+
             Expr::Grouping(sub_expr) => Interpreter::evaluate(*sub_expr),
 
             Expr::Literal(value) => {
@@ -29,8 +31,7 @@ impl Interpreter {
                         if let Value::Number(value) = right {
                             Ok(Value::Number(-value))
                         } else {
-                            // This should be a runtime error
-                            panic!()
+                            todo!("Runtime error")
                         }
                     }
                 }

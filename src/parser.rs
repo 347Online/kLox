@@ -1,6 +1,6 @@
 use crate::{
     expr::Expr,
-    lox::Lox,
+    lox::{Lox, LoxError},
     token::{Value, Token, TokenType, BinOp, UnOp},
 };
 
@@ -14,21 +14,15 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, String> {
-        match self.expression() {
-            Ok(expr) => Ok(expr),
-            Err(message) => {
-                println!("{}", &message);
-                Err(message)
-            }
-        }
+    pub fn parse(&mut self) -> Result<Expr, LoxError> {
+        self.expression()
     }
 
-    fn expression(&mut self) -> Result<Expr, String> {
+    fn expression(&mut self) -> Result<Expr, LoxError> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Result<Expr, String> {
+    fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;
 
         while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
@@ -49,7 +43,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn comparison(&mut self) -> Result<Expr, String> {
+    fn comparison(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.term()?;
 
         while self.advance_if(vec![
@@ -77,7 +71,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn term(&mut self) -> Result<Expr, String> {
+    fn term(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.factor()?;
 
         while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
@@ -98,7 +92,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn factor(&mut self) -> Result<Expr, String> {
+    fn factor(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.unary()?;
 
         while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
@@ -119,7 +113,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn unary(&mut self) -> Result<Expr, String> {
+    fn unary(&mut self) -> Result<Expr, LoxError> {
         if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
             let operator = match self.previous().kind() {
                 TokenType::Bang => UnOp::Not,
@@ -134,7 +128,7 @@ impl Parser {
         self.primary()
     }
 
-    fn primary(&mut self) -> Result<Expr, String> {
+    fn primary(&mut self) -> Result<Expr, LoxError> {
         if self.advance_if(vec![TokenType::False]) {
             return Ok(Expr::Literal(Value::Bool(false)));
         }
@@ -153,20 +147,19 @@ impl Parser {
             let expr = self.expression()?;
             self.consume(
                 TokenType::RightParen,
-                String::from("Expect ')' after expression."),
+                "Expect ')' after expression.",
             )
             .unwrap();
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        // panic!()
         Err(Parser::error(
             self.peek(),
-            String::from("Expect expression"),
+            "Expect expression",
         ))
     }
 
-    fn consume(&mut self, kind: TokenType, message: String) -> Result<Token, String> {
+    fn consume<S: Into<String>>(&mut self, kind: TokenType, message: S) -> Result<Token, LoxError> {
         if self.check(kind) {
             return Ok(self.advance());
         }
@@ -208,10 +201,8 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
-    fn error(token: &Token, message: String) -> String {
+    fn error<S: Into<String>>(token: &Token, message: S) -> LoxError {
         Lox::error_token(token, message)
-        // Consider refactoring to return some custom error structure
-        // For now continuing to return a string
     }
 
     fn sync(&mut self) {

@@ -83,7 +83,6 @@ pub enum Value {
     Identifier { name: String },
     Number(f64),
     String(String),
-    Empty,
     Keyword(String),
     Nil,
 }
@@ -103,7 +102,7 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new<S: Into<String> + Display>(
+    pub fn new<S: Into<String>>(
         kind: TokenType,
         lexeme: S,
         literal: Value,
@@ -111,7 +110,7 @@ impl Token {
     ) -> Token {
         Token {
             kind,
-            lexeme: lexeme.to_string(),
+            lexeme: lexeme.into(),
             literal,
             line,
         }

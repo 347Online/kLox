@@ -5,28 +5,73 @@ use std::{
 };
 
 use crate::{
+    interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType}, interpreter::Interpreter,
+    token::{Token, TokenType}, expr::Expr,
 };
 
-pub struct Lox {
-    had_error: bool,
+#[derive(Debug)]
+pub enum LoxErrorKind {
+    SyntaxError,
+    RuntimeError,
 }
 
-impl Lox {
-    pub fn new() -> Lox {
-        Lox { had_error: false }
+impl Display for LoxErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug)]
+pub struct LoxError {
+    line: i32,
+    message: String,
+    at: String,
+    kind: LoxErrorKind,
+}
+
+impl Display for LoxError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[line {}] {}{}: {}",
+            self.line,
+            self.kind,
+            self.at,
+            self.message
+        )
+    }
+}
+
+
+impl LoxError {
+    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> Self {
+        LoxError::at(line, "", &message.into(), kind)
     }
 
-    pub fn run_file(&mut self, path: String) -> Result<(), String> {
+    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> Self {
+        LoxError {
+            line,
+            message: message.into(),
+            at: at.into(),
+            kind,
+        }
+    }
+}
+
+pub struct Lox;
+
+impl Lox {
+
+    pub fn run_file(path: String) -> Result<(), LoxError> {
         let code = read_to_string(path).unwrap();
-        self.run(code)?;
+        Lox::run(code)?;
 
         Ok(())
     }
 
-    pub fn run_prompt(&mut self) -> Result<(), String> {
+    pub fn run_prompt() -> Result<(), LoxError> {
         let stdin = stdin();
         let mut stdout = stdout();
         loop {
@@ -40,55 +85,49 @@ impl Lox {
                 break;
             }
 
-            self.run(line)?;
+            Lox::run(line)?;
         }
 
         Ok(())
     }
 
-    fn run(&mut self, source: String) -> Result<(), String> {
+    fn run(source: String) -> Result<(), LoxError> {
         let mut scanner = Scanner::new(source);
-        let tokens = scanner.scan_tokens()?;
+
+        let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
+            println!("{e}");
+            vec![]
+        });
 
         let mut parser = Parser::new(tokens);
-        let ast = parser.parse()?;
-
-        // println!("AST: {:?}", ast);
+        let ast = parser.parse().unwrap_or_else(|e| {
+            println!("{e}");
+            Expr::Empty
+        });
 
         let mut interpreter = Interpreter::new();
         let result = interpreter.interpret(ast)?;
 
         println!("Result: {}", result);
 
-        // if hadError???
-
         Ok(())
     }
 
-    pub fn error<S: Into<String> + Display>(line: i32, message: S) -> String {
-        Lox::report(line, String::from(""), message.to_string())
+    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
+        Lox::report(line, "", &message.into(), kind)
     }
 
-    pub fn error_token<S: Into<String> + Display>(token: &Token, message: S) -> String {
+    pub fn error_token<S: Into<String>>(token: &Token, message: S) -> LoxError {
         let at = if token.is(TokenType::Eof) {
-            " at end ".to_string()
+            " at end".to_string()
         } else {
             format!(" at '{}'", token.lexeme())
         };
 
-        Lox::report(token.line(), at, message.to_string())
+        Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
     }
 
-    fn report(line: i32, at: String, message: String) -> String {
-        let formatted_message = format!("[line {}] Error{}: {}", line, at, message);
-        println!("{formatted_message}");
-        // self.had_error = true;
-        formatted_message
-    }
-}
-
-impl Default for Lox {
-    fn default() -> Self {
-        Self::new()
+    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
+        LoxError::at(line, at, message, kind)
     }
 }
