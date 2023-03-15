@@ -19,13 +19,10 @@ impl Interpreter {
     fn output(value: Value) -> String {
         match value {
             Value::Nil => String::from("nil"),
-            Value::Number(number) => number
-                .to_string()
-                .strip_suffix(".0")
-                .map_or(number.to_string(), |s| s.to_string()),
+            Value::Number(number) => number.to_string(),
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
-            Value::Identifier { name } => todo!(),
+            Value::Identifier { name } => todo!("pull value for identifier"),
         }
     }
 
@@ -63,16 +60,16 @@ impl Interpreter {
                 match (operator, left, right) {
                     // Arithmetic
                     (BinOp::Subtract, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left / right))
+                        Ok(Value::Number(left - right))
                     }
                     (BinOp::Divide, Value::Number(left), Value::Number(right)) => {
                         Ok(Value::Number(left / right))
                     }
                     (BinOp::Multiply, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left / right))
+                        Ok(Value::Number(left * right))
                     }
                     (BinOp::Add, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left / right))
+                        Ok(Value::Number(left + right))
                     }
 
                     // String Concatenation

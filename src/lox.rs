@@ -104,7 +104,7 @@ impl Lox {
         let mut interpreter = Interpreter::new();
         let result = interpreter.interpret(ast)?;
 
-        println!("Result: {}", result);
+        println!("{}", result);
 
         Ok(())
     }

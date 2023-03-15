@@ -184,8 +184,6 @@ impl Scanner {
             ident_string.push(self.advance());
         }
 
-        let name = ident_string.as_str();
-
         let token = Token::new(
             TokenType::Identifier,
             ident_string.clone(),
