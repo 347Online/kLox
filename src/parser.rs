@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
-    token::{Value, Token, TokenType, BinOp, UnOp},
+    token::{BinOp, Token, TokenType, UnOp, Value},
 };
 
 pub struct Parser {
@@ -30,7 +30,7 @@ impl Parser {
                 TokenType::BangEqual => BinOp::NotEqual,
                 TokenType::EqualEqual => BinOp::Equal,
 
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
@@ -58,7 +58,7 @@ impl Parser {
                 TokenType::Less => BinOp::Less,
                 TokenType::LessEqual => BinOp::LessEqual,
 
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let right = Box::new(self.term()?);
             expr = Expr::Binary {
@@ -79,7 +79,7 @@ impl Parser {
                 TokenType::Minus => BinOp::Subtract,
                 TokenType::Plus => BinOp::Add,
 
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let right = Box::new(self.factor()?);
             expr = Expr::Binary {
@@ -100,7 +100,7 @@ impl Parser {
                 TokenType::Slash => BinOp::Divide,
                 TokenType::Star => BinOp::Multiply,
 
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let right = Box::new(self.unary()?);
             expr = Expr::Binary {
@@ -119,7 +119,7 @@ impl Parser {
                 TokenType::Bang => UnOp::Not,
                 TokenType::Minus => UnOp::Negative,
 
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
@@ -145,18 +145,12 @@ impl Parser {
 
         if self.advance_if(vec![TokenType::LeftParen]) {
             let expr = self.expression()?;
-            self.consume(
-                TokenType::RightParen,
-                "Expect ')' after expression.",
-            )
-            .unwrap();
+            self.consume(TokenType::RightParen, "Expect ')' after expression.")
+                .unwrap();
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        Err(Parser::error(
-            self.peek(),
-            "Expect expression",
-        ))
+        Err(Parser::error(self.peek(), "Expect expression"))
     }
 
     fn consume<S: Into<String>>(&mut self, kind: TokenType, message: S) -> Result<Token, LoxError> {

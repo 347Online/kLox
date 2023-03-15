@@ -11,13 +11,13 @@ pub enum BinOp {
     Greater,
     GreaterEqual,
     Less,
-    LessEqual
+    LessEqual,
 }
 
 #[derive(Debug)]
 pub enum UnOp {
     Not,
-    Negative
+    Negative,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -102,12 +102,7 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new<S: Into<String>>(
-        kind: TokenType,
-        lexeme: S,
-        literal: Value,
-        line: i32,
-    ) -> Token {
+    pub fn new<S: Into<String>>(kind: TokenType, lexeme: S, literal: Value, line: i32) -> Token {
         Token {
             kind,
             lexeme: lexeme.into(),

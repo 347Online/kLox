@@ -1,4 +1,7 @@
-use crate::{lox::{Lox, LoxError, LoxErrorKind}, token::*};
+use crate::{
+    lox::{Lox, LoxError, LoxErrorKind},
+    token::*,
+};
 
 pub struct Scanner {
     source: Vec<char>,
@@ -84,7 +87,11 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(Lox::error(self.line, "Unterminated string", LoxErrorKind::SyntaxError));
+            return Err(Lox::error(
+                self.line,
+                "Unterminated string",
+                LoxErrorKind::SyntaxError,
+            ));
         }
 
         // The closing "
@@ -282,7 +289,13 @@ impl Scanner {
                 return Ok(());
             }
 
-            _ => return Err(Lox::error(line, "Unexpected character", LoxErrorKind::SyntaxError)),
+            _ => {
+                return Err(Lox::error(
+                    line,
+                    "Unexpected character",
+                    LoxErrorKind::SyntaxError,
+                ))
+            }
         };
 
         let token = Token::new(kind, c, literal, line);

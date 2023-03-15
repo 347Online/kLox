@@ -5,10 +5,11 @@ use std::{
 };
 
 use crate::{
+    expr::Expr,
     interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType}, expr::Expr,
+    token::{Token, TokenType},
 };
 
 #[derive(Debug)]
@@ -36,14 +37,10 @@ impl Display for LoxError {
         write!(
             f,
             "[line {}] {}{}: {}",
-            self.line,
-            self.kind,
-            self.at,
-            self.message
+            self.line, self.kind, self.at, self.message
         )
     }
 }
-
 
 impl LoxError {
     pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> Self {
@@ -63,7 +60,6 @@ impl LoxError {
 pub struct Lox;
 
 impl Lox {
-
     pub fn run_file(path: String) -> Result<(), LoxError> {
         let code = read_to_string(path).unwrap();
         Lox::run(code)?;
