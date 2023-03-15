@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
-pub enum BinOp {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BinOpType {
     Add,
     Subtract,
     Multiply,
@@ -14,10 +14,22 @@ pub enum BinOp {
     LessEqual,
 }
 
-#[derive(Debug)]
-pub enum UnOp {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UnOpType {
     Not,
     Negative,
+}
+
+#[derive(Debug)]
+pub struct BinOp {
+    kind: BinOpType,
+    token: Token,
+}
+
+#[derive(Debug)]
+pub struct UnOp {
+    kind: UnOpType,
+    token: Token,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
