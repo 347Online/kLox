@@ -27,13 +27,13 @@ pub struct BinOp {
 }
 
 impl BinOp {
-    fn new(kind: BinOpType, token: Token) -> Self {
+    pub fn new(kind: BinOpType, token: Token) -> Self {
         BinOp { kind, token }
     }
 }
 
 impl UnOp {
-    fn new(kind: UnOpType, token: Token) -> Self {
+    pub fn new(kind: UnOpType, token: Token) -> Self {
         UnOp { kind, token }
     }
 }
