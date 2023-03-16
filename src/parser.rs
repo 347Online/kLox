@@ -62,7 +62,7 @@ impl Parser {
     }
 
     fn block_statement(&mut self) -> Result<Stmt, LoxError> {
-
+        Ok(Stmt::Block(self.block()?))
     }
 
     fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
