@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
-    lox::{Lox, LoxError, LoxErrorKind},
-    token::{BinOpType, Token, UnOpType, Value},
+    lox::{Lox, LoxError},
+    token::{BinOpType, UnOpType, Value},
 };
 
 #[derive(Default)]
@@ -14,9 +14,9 @@ impl Interpreter {
 
     pub fn interpret(&mut self, expr: Expr) {
         let result = Interpreter::evaluate(expr);
-        let output = match result {
+        match result {
             Ok(value) => println!("{}", Interpreter::output(value)),
-            Err(error) => eprintln!("{}", error.to_string()),
+            Err(error) => eprintln!("{}", error),
         };
 
     }
@@ -27,6 +27,7 @@ impl Interpreter {
             Value::Number(number) => number.to_string(),
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
+            #[allow(unused)]
             Value::Identifier { name } => todo!("pull value for identifier"),
         }
     }

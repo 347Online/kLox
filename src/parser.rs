@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
-    token::{BinOp, Token, TokenType, UnOp, Value, BinOpType, UnOpType},
+    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value},
 };
 
 pub struct Parser {
@@ -200,6 +200,7 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
+    #[allow(dead_code)]
     fn sync(&mut self) {
         self.advance();
 
