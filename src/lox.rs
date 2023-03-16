@@ -60,14 +60,12 @@ impl LoxError {
 pub struct Lox;
 
 impl Lox {
-    pub fn run_file(path: String) -> Result<(), LoxError> {
+    pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
-        Lox::run(code)?;
-
-        Ok(())
+        Lox::run(code);
     }
 
-    pub fn run_prompt() -> Result<(), LoxError> {
+    pub fn run_prompt() {
         let stdin = stdin();
         let mut stdout = stdout();
         loop {
@@ -81,13 +79,11 @@ impl Lox {
                 break;
             }
 
-            Lox::run(line)?;
+            Lox::run(line);
         }
-
-        Ok(())
     }
 
-    fn run(source: String) -> Result<(), LoxError> {
+    fn run(source: String) {
         let mut scanner = Scanner::new(source);
 
         let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
@@ -102,18 +98,14 @@ impl Lox {
         });
 
         let mut interpreter = Interpreter::new();
-        let result = interpreter.interpret(ast)?;
-
-        println!("Result: {}", result);
-
-        Ok(())
+        interpreter.interpret(ast);
     }
 
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
         Lox::report(line, "", &message.into(), kind)
     }
 
-    pub fn error_token<S: Into<String>>(token: &Token, message: S) -> LoxError {
+    pub fn syntax_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
         let at = if token.is(TokenType::Eof) {
             " at end".to_string()
         } else {
@@ -121,6 +113,15 @@ impl Lox {
         };
 
         Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
+    }
+
+    pub fn runtime_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
+        LoxError::at(
+            token.line(),
+            "",
+            &message.into(),
+            LoxErrorKind::RuntimeError,
+        )
     }
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {

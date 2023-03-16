@@ -150,6 +150,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self, first: char) -> Result<(), LoxError> {
+        #[allow(dead_code)] // TODO: Remove this
         fn keyword_token(name: &str) -> Option<TokenType> {
             let kind = match name {
                 "and" => TokenType::And,
@@ -184,23 +185,12 @@ impl Scanner {
             ident_string.push(self.advance());
         }
 
-        let name = ident_string.as_str();
-
-        let token = if let Some(kind) = keyword_token(name) {
-            Token::new(
-                kind,
-                ident_string.clone(),
-                Value::Keyword(ident_string),
-                self.line,
-            )
-        } else {
-            Token::new(
-                TokenType::Identifier,
-                ident_string.clone(),
-                Value::Identifier { name: ident_string },
-                self.line,
-            )
-        };
+        let token = Token::new(
+            TokenType::Identifier,
+            ident_string.clone(),
+            Value::Identifier { name: ident_string },
+            self.line,
+        );
         self.tokens.push(token);
 
         Ok(())
