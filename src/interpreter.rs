@@ -147,8 +147,4 @@ impl Interpreter {
             _ => left == right,
         }
     }
-
-    // fn error<S: Into<String>>(token: Token, message: S) -> LoxError {
-    //     Lox::error(-13, message, LoxErrorKind::RuntimeError)
-    // }
 }
