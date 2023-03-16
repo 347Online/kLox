@@ -6,11 +6,11 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct Interpreter {
-    env: Environment
+pub struct Interpreter<'a> {
+    env: Environment<'a>
 }
 
-impl Interpreter {
+impl<'a> Interpreter<'a> {
     pub fn new() -> Self {
         Interpreter {
             env: Environment::new()

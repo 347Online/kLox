@@ -6,14 +6,16 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct Environment {
+pub struct Environment<'a> {
     values: HashMap<String, Value>,
+    enclosing: Option<&'a Environment<'a>>
 }
 
-impl Environment {
+impl<'a> Environment<'a> {
     pub fn new() -> Self {
         Environment {
             values: HashMap::new(),
+            enclosing: None
         }
     }
 
