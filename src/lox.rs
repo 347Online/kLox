@@ -116,7 +116,12 @@ impl Lox {
     }
 
     pub fn runtime_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        LoxError::at(token.line(), "", &message.into(), LoxErrorKind::RuntimeError)
+        LoxError::at(
+            token.line(),
+            "",
+            &message.into(),
+            LoxErrorKind::RuntimeError,
+        )
     }
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {

@@ -18,7 +18,6 @@ impl Interpreter {
             Ok(value) => println!("{}", Interpreter::output(value)),
             Err(error) => eprintln!("{}", error),
         };
-
     }
 
     fn output(value: Value) -> String {
