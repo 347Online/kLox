@@ -26,10 +26,9 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Stmt {
-
         let result = 'block: {
             if self.advance_if(vec![TokenType::Var]) {
-                break 'block self.var_declaration()
+                break 'block self.var_declaration();
             }
 
             self.statement()
@@ -40,7 +39,7 @@ impl Parser {
             Err(_) => {
                 self.sync();
                 Stmt::Empty
-            },
+            }
         }
     }
 
@@ -82,7 +81,28 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expr, LoxError> {
+        let expr = self.equality()?;
+
+        if self.advance_if(vec![TokenType::Equal]) {
+            let equals = self.previous();
+            let value = self.assignment()?;
+
+            if let Expr::Variable(name) = expr {
+                return Ok(Expr::Assign(name, Box::new(value)));
+            }
+
+            // "We report an error if the left-hand side isn’t a valid assignment target,
+            // but we don’t throw it because the parser isn’t in a confused state where
+            // we need to go into panic mode and synchronize."
+            // May need to handle this differently
+            return Err(Lox::syntax_error(&equals, "Invalid assignment target."));
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {

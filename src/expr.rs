@@ -13,6 +13,7 @@ pub enum Expr {
         operator: UnOp,
         right: Box<Expr>,
     },
-    Empty,
     Variable(Token),
+    Assign(Token, Box<Expr>),
+    Empty,
 }

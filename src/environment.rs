@@ -28,4 +28,17 @@ impl Environment {
 
         Ok(value.clone())
     }
+
+    pub fn assign(&mut self, name: Token, value: Value) -> Result<(), LoxError> {
+        // ???
+        if let std::collections::hash_map::Entry::Occupied(mut e) = self.values.entry(name.lexeme()) {
+            e.insert(value);
+            return Ok(());
+        }
+
+        Err(Lox::runtime_error(
+            &name,
+            format!("Undefined variable '{}'.", name.lexeme()),
+        ))
+    }
 }

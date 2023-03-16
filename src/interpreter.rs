@@ -58,7 +58,7 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&self, expr: Expr) -> Result<Value, LoxError> {
+    fn evaluate(&mut self, expr: Expr) -> Result<Value, LoxError> {
         match expr {
             Expr::Empty => Ok(Value::Nil),
 
@@ -87,6 +87,12 @@ impl Interpreter {
 
             Expr::Variable(name) => {
                 Ok(self.env.get(name)?)
+            }
+
+            Expr::Assign(name, expr) => {
+                let value = self.evaluate(*expr)?;
+                self.env.assign(name, value.clone())?;
+                Ok(value)
             }
 
             Expr::Binary {
