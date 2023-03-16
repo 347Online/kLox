@@ -1,5 +1,5 @@
 use crate::{
-    expr::{Expr, self},
+    expr::{Expr},
     lox::{Lox, LoxError},
     token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value}, stmt::Stmt,
 };
@@ -29,7 +29,7 @@ impl Parser {
             return self.print_statement()
         }
 
-        return self.expression_statement()
+        self.expression_statement()
     }
 
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {

@@ -5,7 +5,6 @@ use std::{
 };
 
 use crate::{
-    expr::Expr,
     interpreter::{Interpreter},
     parser::Parser,
     scanner::Scanner,
