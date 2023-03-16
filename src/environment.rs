@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 use crate::{
     lox::{Lox, LoxError},
@@ -8,7 +8,7 @@ use crate::{
 #[derive(Default)]
 pub struct Environment<'a> {
     values: HashMap<String, Value>,
-    enclosing: Option<&'a Environment<'a>>
+    enclosing: Option<&'a mut Environment<'a>>
 }
 
 impl<'a> Environment<'a> {
@@ -28,6 +28,10 @@ impl<'a> Environment<'a> {
             return Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
         };
 
+        if let Some(environment) = &self.enclosing {
+            return environment.get(name);
+        }
+
         Ok(value.clone())
     }
 
@@ -35,6 +39,11 @@ impl<'a> Environment<'a> {
         // ???
         if let std::collections::hash_map::Entry::Occupied(mut e) = self.values.entry(name.lexeme()) {
             e.insert(value);
+            return Ok(());
+        }
+
+        if let Some(ref mut environment) = &mut self.enclosing {
+            environment.assign(name, value)?;
             return Ok(());
         }
 
