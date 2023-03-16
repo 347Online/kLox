@@ -2,15 +2,19 @@ use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOpType, UnOpType, Value},
+    token::{BinOpType, UnOpType, Value}, environment::Environment,
 };
 
 #[derive(Default)]
-pub struct Interpreter;
+pub struct Interpreter {
+    env: Environment
+}
 
 impl Interpreter {
     pub fn new() -> Self {
-        Interpreter
+        Interpreter {
+            env: Environment::new()
+        }
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
@@ -25,13 +29,19 @@ impl Interpreter {
     fn execute(&mut self, stmt: Stmt) -> Result<(), LoxError> {
         match stmt {
             Stmt::Expr(expr) => {
-                Interpreter::evaluate(expr)?;
+                self.evaluate(expr)?;
             }
             Stmt::Print(expr) => {
-                let value = Interpreter::evaluate(expr)?;
+                let value = self.evaluate(expr)?;
                 let output = Interpreter::output(value);
                 println!("{}", output)
             }
+            Stmt::Var(name, initializer) => {
+                let value = self.evaluate(initializer)?;
+                self.env.define(name.lexeme(), value);
+            }
+
+            Stmt::Empty => ()
         }
 
         Ok(())
@@ -48,17 +58,17 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(expr: Expr) -> Result<Value, LoxError> {
+    fn evaluate(&self, expr: Expr) -> Result<Value, LoxError> {
         match expr {
             Expr::Empty => Ok(Value::Nil),
 
-            Expr::Grouping(sub_expr) => Interpreter::evaluate(*sub_expr),
+            Expr::Grouping(sub_expr) => self.evaluate(*sub_expr),
 
             Expr::Literal(value) => Ok(value),
 
             Expr::Unary { operator, right } => {
                 let op_type = operator.kind();
-                let right = Interpreter::evaluate(*right)?;
+                let right = self.evaluate(*right)?;
 
                 match op_type {
                     UnOpType::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
@@ -75,14 +85,18 @@ impl Interpreter {
                 }
             }
 
+            Expr::Variable(name) => {
+                Ok(self.env.get(name)?)
+            }
+
             Expr::Binary {
                 operator,
                 left,
                 right,
             } => {
                 let op_type = operator.kind();
-                let left = Interpreter::evaluate(*left)?;
-                let right = Interpreter::evaluate(*right)?;
+                let left = self.evaluate(*left)?;
+                let right = self.evaluate(*right)?;
 
                 match (op_type, left, right) {
                     // Arithmetic

@@ -1,4 +1,4 @@
-use crate::token::{BinOp, UnOp, Value};
+use crate::token::{BinOp, UnOp, Value, Token};
 
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -14,4 +14,5 @@ pub enum Expr {
         right: Box<Expr>,
     },
     Empty,
+    Variable(Token),
 }
