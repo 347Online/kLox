@@ -95,12 +95,12 @@ impl Lox {
         });
 
         let mut parser = Parser::new(tokens);
-        let ast = parser.parse().unwrap_or_else(|e| {
+        let statements = parser.parse().unwrap_or_else(|e| {
             println!("{e}");
-            Expr::Empty
+            vec![]
         });
 
-        interpreter.interpret(ast);
+        interpreter.interpret(statements);
     }
 
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
