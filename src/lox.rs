@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     expr::Expr,
-    interpreter::Interpreter,
+    interpreter::{Interpreter},
     parser::Parser,
     scanner::Scanner,
     token::{Token, TokenType},
@@ -62,12 +62,15 @@ pub struct Lox;
 impl Lox {
     pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
-        Lox::run(code);
+        let mut interpreter = Interpreter::new();
+        Lox::run(code, &mut interpreter);
     }
 
     pub fn run_prompt() {
         let stdin = stdin();
         let mut stdout = stdout();
+        let mut interpreter = Interpreter::new();
+
         loop {
             print!("> ");
             stdout.flush().unwrap();
@@ -79,11 +82,11 @@ impl Lox {
                 break;
             }
 
-            Lox::run(line);
+            Lox::run(line, &mut interpreter);
         }
     }
 
-    fn run(source: String) {
+    fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
         let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
@@ -97,7 +100,6 @@ impl Lox {
             Expr::Empty
         });
 
-        let mut interpreter = Interpreter::new();
         interpreter.interpret(ast);
     }
 
