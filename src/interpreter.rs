@@ -1,19 +1,20 @@
 use crate::{
+    environment::Environment,
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOpType, UnOpType, Value}, environment::Environment,
+    token::{BinOpType, UnOpType, Value},
 };
 
 #[derive(Default)]
 pub struct Interpreter<'a> {
-    env: Environment<'a>
+    env: Environment<'a>,
 }
 
 impl<'a> Interpreter<'a> {
     pub fn new() -> Self {
         Interpreter {
-            env: Environment::new()
+            env: Environment::new(),
         }
     }
 
@@ -41,7 +42,7 @@ impl<'a> Interpreter<'a> {
                 self.env.define(name.lexeme(), value);
             }
 
-            Stmt::Empty => ()
+            Stmt::Empty => (),
         }
 
         Ok(())
@@ -85,9 +86,7 @@ impl<'a> Interpreter<'a> {
                 }
             }
 
-            Expr::Variable(name) => {
-                Ok(self.env.get(name)?)
-            }
+            Expr::Variable(name) => Ok(self.env.get(name)?),
 
             Expr::Assign(name, expr) => {
                 let value = self.evaluate(*expr)?;

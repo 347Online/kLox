@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use crate::{
     lox::{Lox, LoxError},
@@ -8,14 +8,14 @@ use crate::{
 #[derive(Default)]
 pub struct Environment<'a> {
     values: HashMap<String, Value>,
-    enclosing: Option<&'a mut Environment<'a>>
+    enclosing: Option<&'a mut Environment<'a>>,
 }
 
 impl<'a> Environment<'a> {
     pub fn new() -> Self {
         Environment {
             values: HashMap::new(),
-            enclosing: None
+            enclosing: None,
         }
     }
 
@@ -37,7 +37,8 @@ impl<'a> Environment<'a> {
 
     pub fn assign(&mut self, name: Token, value: Value) -> Result<(), LoxError> {
         // ???
-        if let std::collections::hash_map::Entry::Occupied(mut e) = self.values.entry(name.lexeme()) {
+        if let std::collections::hash_map::Entry::Occupied(mut e) = self.values.entry(name.lexeme())
+        {
             e.insert(value);
             return Ok(());
         }
