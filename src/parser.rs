@@ -37,7 +37,10 @@ impl Parser {
 
         match result {
             Ok(stmt) => stmt,
-            Err(_) => Stmt::Empty,
+            Err(_) => {
+                self.sync();
+                Stmt::Empty
+            },
         }
     }
 
@@ -265,7 +268,6 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
-    #[allow(dead_code)] // TODO: Remove this
     fn sync(&mut self) {
         self.advance();
 
