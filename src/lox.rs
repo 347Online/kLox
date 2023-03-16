@@ -96,10 +96,7 @@ impl Lox {
         });
 
         let mut parser = Parser::new(tokens);
-        let statements = parser.parse().unwrap_or_else(|e| {
-            println!("{e}");
-            vec![]
-        });
+        let statements = parser.parse();
 
         interpreter.interpret(statements);
     }
