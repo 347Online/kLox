@@ -1,6 +1,7 @@
 use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
+    stmt::Stmt,
     token::{BinOpType, UnOpType, Value},
 };
 
@@ -12,12 +13,28 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&mut self, expr: Expr) {
-        let result = Interpreter::evaluate(expr);
-        match result {
-            Ok(value) => println!("{}", Interpreter::output(value)),
-            Err(error) => eprintln!("{}", error),
-        };
+    pub fn interpret(&mut self, statements: Vec<Stmt>) {
+        for stmt in statements {
+            if let Err(error) = self.execute(stmt) {
+                eprintln!("{}", error);
+                break;
+            }
+        }
+    }
+
+    fn execute(&mut self, stmt: Stmt) -> Result<(), LoxError> {
+        match stmt {
+            Stmt::Expr(expr) => {
+                Interpreter::evaluate(expr)?;
+            }
+            Stmt::Print(expr) => {
+                let value = Interpreter::evaluate(expr)?;
+                let output = Interpreter::output(value);
+                println!("{}", output)
+            }
+        }
+
+        Ok(())
     }
 
     fn output(value: Value) -> String {

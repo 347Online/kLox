@@ -5,7 +5,6 @@ use std::{
 };
 
 use crate::{
-    expr::Expr,
     interpreter::{Interpreter},
     parser::Parser,
     scanner::Scanner,
@@ -67,6 +66,8 @@ impl Lox {
     }
 
     pub fn run_prompt() {
+        println!("klox, yet another Lox implementation, Katie Janzen 2023");
+        
         let stdin = stdin();
         let mut stdout = stdout();
         let mut interpreter = Interpreter::new();
@@ -95,12 +96,12 @@ impl Lox {
         });
 
         let mut parser = Parser::new(tokens);
-        let ast = parser.parse().unwrap_or_else(|e| {
+        let statements = parser.parse().unwrap_or_else(|e| {
             println!("{e}");
-            Expr::Empty
+            vec![]
         });
 
-        interpreter.interpret(ast);
+        interpreter.interpret(statements);
     }
 
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
