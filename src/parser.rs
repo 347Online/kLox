@@ -50,14 +50,14 @@ impl Parser {
         match token.kind() {
             TokenType::Print => {
                 self.advance();
-                return self.print_statement();
+                self.print_statement()
             }
             TokenType::LeftBrace => {
                 self.advance();
-                return self.block_statement();
+                self.block_statement()
             }
 
-            _ => return self.expression_statement(),
+            _ => self.expression_statement(),
         }
     }
 

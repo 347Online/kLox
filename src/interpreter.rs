@@ -41,6 +41,7 @@ impl<'a> Interpreter<'a> {
                 let value = self.evaluate(initializer)?;
                 self.env.define(name.lexeme(), value);
             }
+            Stmt::Block(statements) => todo!(),
 
             Stmt::Empty => (),
         }
