@@ -5,8 +5,7 @@ use std::{
 };
 
 use crate::{
-    expr::Expr,
-    interpreter::Interpreter,
+    interpreter::{Interpreter},
     parser::Parser,
     scanner::Scanner,
     token::{Token, TokenType},
@@ -62,12 +61,17 @@ pub struct Lox;
 impl Lox {
     pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
-        Lox::run(code);
+        let mut interpreter = Interpreter::new();
+        Lox::run(code, &mut interpreter);
     }
 
     pub fn run_prompt() {
+        println!("klox, yet another Lox implementation, Katie Janzen 2023");
+        
         let stdin = stdin();
         let mut stdout = stdout();
+        let mut interpreter = Interpreter::new();
+
         loop {
             print!("> ");
             stdout.flush().unwrap();
@@ -79,11 +83,11 @@ impl Lox {
                 break;
             }
 
-            Lox::run(line);
+            Lox::run(line, &mut interpreter);
         }
     }
 
-    fn run(source: String) {
+    fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
         let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
@@ -92,13 +96,12 @@ impl Lox {
         });
 
         let mut parser = Parser::new(tokens);
-        let ast = parser.parse().unwrap_or_else(|e| {
+        let statements = parser.parse().unwrap_or_else(|e| {
             println!("{e}");
-            Expr::Empty
+            vec![]
         });
 
-        let mut interpreter = Interpreter::new();
-        interpreter.interpret(ast);
+        interpreter.interpret(statements);
     }
 
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {

@@ -1,6 +1,6 @@
 use crate::token::{BinOp, UnOp, Value};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Binary {
         operator: BinOp,

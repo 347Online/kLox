@@ -14,13 +14,13 @@ pub enum BinOpType {
     LessEqual,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnOpType {
     Not,
     Negative,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BinOp {
     kind: BinOpType,
     token: Token,
@@ -54,7 +54,7 @@ impl UnOp {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UnOp {
     kind: UnOpType,
     token: Token,
