@@ -155,7 +155,7 @@ impl Parser {
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        Err(Parser::error(self.peek(), "Expect expression"))
+        Err(Lox::syntax_error(self.peek(), "Expect expression"))
     }
 
     fn consume<S: Into<String>>(&mut self, kind: TokenType, message: S) -> Result<Token, LoxError> {
@@ -163,7 +163,7 @@ impl Parser {
             return Ok(self.advance());
         }
 
-        Err(Parser::error(self.peek(), message))
+        Err(Lox::syntax_error(self.peek(), message))
     }
 
     fn check(&self, kind: TokenType) -> bool {
@@ -198,10 +198,6 @@ impl Parser {
 
     fn previous(&self) -> Token {
         self.tokens[self.current - 1].clone()
-    }
-
-    fn error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        Lox::error_token(token, message)
     }
 
     fn sync(&mut self) {

@@ -34,6 +34,10 @@ impl BinOp {
     pub fn kind(&self) -> BinOpType {
         self.kind
     }
+
+    pub fn token(&self) -> Token {
+        self.token.clone()
+    }
 }
 
 impl UnOp {
@@ -43,6 +47,10 @@ impl UnOp {
 
     pub fn kind(&self) -> UnOpType {
         self.kind
+    }
+
+    pub fn token(&self) -> Token {
+        self.token.clone()
     }
 }
 

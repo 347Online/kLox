@@ -8,15 +8,15 @@ pub mod token;
 use lox::*;
 use std::env;
 
-fn main() -> Result<(), String> {
+fn main() {
     println!("klox, yet another Lox implementation, Katie Janzen 2023");
 
     let args: Vec<String> = env::args().collect();
     let len = args.len();
 
     match len {
-        1 => Lox::run_prompt().map_err(|e| e.to_string()),
-        2 => Lox::run_file(args[1].clone()).map_err(|e| e.to_string()),
-        _ => Err(String::from("Usage: klox [script]")),
+        1 => Lox::run_prompt(),
+        2 => Lox::run_file(args[1].clone()),
+        _ => println!("Usage: klox [script]"),
     }
 }

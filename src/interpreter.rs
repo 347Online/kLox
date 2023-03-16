@@ -1,7 +1,7 @@
 use crate::{
     expr::Expr,
     lox::{Lox, LoxError, LoxErrorKind},
-    token::{BinOpType, UnOpType, Value},
+    token::{BinOpType, Token, UnOpType, Value},
 };
 
 #[derive(Default)]
@@ -12,8 +12,13 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&mut self, expr: Expr) -> Result<String, LoxError> {
-        Ok(Interpreter::output(Self::evaluate(expr)?))
+    pub fn interpret(&mut self, expr: Expr) {
+        let result = Interpreter::evaluate(expr);
+        let output = match result {
+            Ok(value) => println!("{}", Interpreter::output(value)),
+            Err(error) => eprintln!("{}", error.to_string()),
+        };
+
     }
 
     fn output(value: Value) -> String {
@@ -44,7 +49,10 @@ impl Interpreter {
                         if let Value::Number(value) = right {
                             Ok(Value::Number(-value))
                         } else {
-                            Err(Interpreter::error("Operand must be a number."))
+                            Err(Lox::runtime_error(
+                                &operator.token(),
+                                "Operand must be a number.",
+                            ))
                         }
                     }
                 }
@@ -101,7 +109,8 @@ impl Interpreter {
                         Ok(Value::Bool(!Interpreter::is_equal(left, right)))
                     }
 
-                    (BinOpType::Add, _, _) => Err(Interpreter::error(
+                    (BinOpType::Add, _, _) => Err(Lox::runtime_error(
+                        &operator.token(),
                         "Operands must be two numbers or two strings.",
                     )),
                     (
@@ -114,7 +123,10 @@ impl Interpreter {
                         | BinOpType::Multiply,
                         _,
                         _,
-                    ) => Err(Interpreter::error("Operands must be numbers")),
+                    ) => Err(Lox::runtime_error(
+                        &operator.token(),
+                        "Operands must be numbers",
+                    )),
                 }
             }
         }
@@ -136,7 +148,7 @@ impl Interpreter {
         }
     }
 
-    fn error<S: Into<String>>(message: S) -> LoxError {
-        Lox::error(-13, message, LoxErrorKind::RuntimeError)
-    }
+    // fn error<S: Into<String>>(token: Token, message: S) -> LoxError {
+    //     Lox::error(-13, message, LoxErrorKind::RuntimeError)
+    // }
 }
