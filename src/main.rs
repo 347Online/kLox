@@ -10,8 +10,6 @@ use lox::*;
 use std::env;
 
 fn main() {
-    println!("klox, yet another Lox implementation, Katie Janzen 2023");
-
     let args: Vec<String> = env::args().collect();
     let len = args.len();
 
