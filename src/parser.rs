@@ -1,7 +1,8 @@
 use crate::{
-    expr::{Expr},
+    expr::Expr,
     lox::{Lox, LoxError},
-    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value}, stmt::Stmt,
+    stmt::Stmt,
+    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value},
 };
 
 pub struct Parser {
@@ -14,22 +15,55 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
+    pub fn parse(&mut self) -> Vec<Stmt> {
         let mut statements: Vec<Stmt> = vec![];
 
         while !self.is_at_end() {
-            statements.push(self.statement()?);
+            statements.push(self.declaration());
         }
 
-        Ok(statements)
+        statements
+    }
+
+    fn declaration(&mut self) -> Stmt {
+
+        let result = 'block: {
+            if self.advance_if(vec![TokenType::Var]) {
+                break 'block self.var_declaration()
+            }
+
+            self.statement()
+        };
+
+        match result {
+            Ok(stmt) => stmt,
+            Err(_) => Stmt::Empty,
+        }
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
         if self.advance_if(vec![TokenType::Print]) {
-            return self.print_statement()
+            return self.print_statement();
         }
 
         self.expression_statement()
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, "Expect variable name.")?;
+
+        let initializer = if self.advance_if(vec![TokenType::Equal]) {
+            self.expression()?
+        } else {
+            Expr::Empty
+        };
+
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration",
+        )?;
+
+        Ok(Stmt::Var(name, initializer))
     }
 
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {
@@ -160,6 +194,7 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
+        // 99% this can be done better with a match expression
         if self.advance_if(vec![TokenType::False]) {
             return Ok(Expr::Literal(Value::Bool(false)));
         }
@@ -172,6 +207,10 @@ impl Parser {
 
         if self.advance_if(vec![TokenType::Number, TokenType::String]) {
             return Ok(Expr::Literal(self.previous().literal()));
+        }
+
+        if self.advance_if(vec![TokenType::Identifier]) {
+            return Ok(Expr::Variable(self.previous()));
         }
 
         if self.advance_if(vec![TokenType::LeftParen]) {
