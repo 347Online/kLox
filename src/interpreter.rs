@@ -26,7 +26,7 @@ impl Interpreter {
             Value::Number(number) => number.to_string(),
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
-            #[allow(unused)]
+            #[allow(unused)] // TODO: Remove this
             Value::Identifier { name } => todo!("pull value for identifier"),
         }
     }

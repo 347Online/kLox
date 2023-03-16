@@ -200,7 +200,7 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
-    #[allow(dead_code)]
+    #[allow(dead_code)] // TODO: Remove this
     fn sync(&mut self) {
         self.advance();
 

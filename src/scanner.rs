@@ -150,7 +150,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self, first: char) -> Result<(), LoxError> {
-        #[allow(dead_code)]
+        #[allow(dead_code)] // TODO: Remove this
         fn keyword_token(name: &str) -> Option<TokenType> {
             let kind = match name {
                 "and" => TokenType::And,
