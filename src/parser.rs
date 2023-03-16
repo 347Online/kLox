@@ -45,12 +45,35 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
-        if let TokenType::Print = self.peek().kind() {
-            self.advance();
-            return self.print_statement();
+        let token = self.peek();
+
+        match token.kind() {
+            TokenType::Print => {
+                self.advance();
+                return self.print_statement();
+            }
+            TokenType::LeftBrace => {
+                self.advance();
+                return self.block_statement();
+            }
+
+            _ => return self.expression_statement(),
+        }
+    }
+
+    fn block_statement(&mut self) -> Result<Stmt, LoxError> {
+
+    }
+
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements = vec![];
+
+        while !self.check(TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration())
         }
 
-        self.expression_statement()
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(statements)
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, LoxError> {

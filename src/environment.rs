@@ -28,8 +28,8 @@ impl<'a> Environment<'a> {
             return Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
         };
 
-        if let Some(environment) = &self.enclosing {
-            return environment.get(name);
+        if let Some(envr) = &self.enclosing {
+            return envr.get(name);
         }
 
         Ok(value.clone())
