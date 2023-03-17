@@ -2,6 +2,7 @@ use crate::token::{BinOp, Token, UnOp, Value};
 
 #[derive(Debug, Clone)]
 pub enum Expr {
+    Empty,
     Binary {
         operator: BinOp,
         left: Box<Expr>,
@@ -15,5 +16,5 @@ pub enum Expr {
     },
     Variable(Token),
     Assign(Token, Box<Expr>),
-    Empty,
+    Logical(Token, Box<Expr>, Box<Expr>),
 }

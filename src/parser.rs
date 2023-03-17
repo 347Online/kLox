@@ -129,9 +129,9 @@ impl Parser {
     fn expression(&mut self) -> Result<Expr, LoxError> {
         self.assignment()
     }
-
+    
     fn assignment(&mut self) -> Result<Expr, LoxError> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         if let TokenType::Equal = self.peek().kind() {
             self.advance();
@@ -147,6 +147,32 @@ impl Parser {
             // we need to go into panic mode and synchronize."
             // May need to handle this differently
             return Err(Lox::syntax_error(&equals, "Invalid assignment target."));
+        }
+
+        Ok(expr)
+    }
+
+    fn or(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.and()?;
+
+        while let TokenType::Or = self.peek().kind() {
+            self.advance();
+            let operator = self.previous();
+            let right = self.and()?;
+            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
+        }
+        
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.equality()?;
+
+        while let TokenType::And = self.peek().kind() {
+            self.advance();
+            let operator = self.previous();
+            let right = self.equality()?;
+            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
