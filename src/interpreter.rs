@@ -93,7 +93,7 @@ impl Interpreter {
 
             Expr::Literal(value) => Ok(value),
 
-            Expr::Unary { operator, right } => {
+            Expr::Unary(operator, right) => {
                 let op_type = operator.kind();
                 let right = self.evaluate(*right)?;
 
@@ -142,11 +142,7 @@ impl Interpreter {
                 }
             }
 
-            Expr::Binary {
-                operator,
-                left,
-                right,
-            } => {
+            Expr::Binary(operator, left, right) => {
                 let op_type = operator.kind();
                 let left = self.evaluate(*left)?;
                 let right = self.evaluate(*right)?;

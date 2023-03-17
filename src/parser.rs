@@ -2,7 +2,7 @@ use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value, LogOp, LogOpType},
+    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value},
 };
 
 pub struct Parser {
@@ -75,7 +75,7 @@ impl Parser {
         if let TokenType::Else = self.peek().kind() {
             self.advance();
             let else_branch = Box::new(self.statement()?);
-            return Ok(Stmt::IfElse(condition, then_branch, else_branch))
+            return Ok(Stmt::IfElse(condition, then_branch, else_branch));
         }
 
         Ok(Stmt::If(condition, then_branch))
@@ -129,7 +129,7 @@ impl Parser {
     fn expression(&mut self) -> Result<Expr, LoxError> {
         self.assignment()
     }
-    
+
     fn assignment(&mut self) -> Result<Expr, LoxError> {
         let expr = self.or()?;
 
@@ -162,7 +162,7 @@ impl Parser {
             let right = self.and()?;
             expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
         }
-        
+
         Ok(expr)
     }
 
@@ -192,12 +192,8 @@ impl Parser {
 
                 _ => unreachable!(),
             };
-            let right = Box::new(self.comparison()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.comparison()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -221,12 +217,8 @@ impl Parser {
 
                 _ => unreachable!(),
             };
-            let right = Box::new(self.term()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.term()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -244,12 +236,8 @@ impl Parser {
 
                 _ => unreachable!(),
             };
-            let right = Box::new(self.factor()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.factor()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right))
         }
 
         Ok(expr)
@@ -267,12 +255,8 @@ impl Parser {
 
                 _ => unreachable!(),
             };
-            let right = Box::new(self.unary()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            };
+            let right = self.unary()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -288,8 +272,8 @@ impl Parser {
 
                 _ => unreachable!(),
             };
-            let right = Box::new(self.unary()?);
-            return Ok(Expr::Unary { operator, right });
+            let right = self.unary()?;
+            return Ok(Expr::Unary(operator, Box::new(right)));
         }
 
         self.primary()
