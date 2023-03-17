@@ -26,10 +26,10 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Stmt {
-
         let result = 'block: {
-            if self.advance_if(vec![TokenType::Var]) {
-                break 'block self.var_declaration()
+            if let TokenType::Var = self.peek().kind() {
+                self.advance();
+                break 'block self.var_declaration();
             }
 
             self.statement()
@@ -40,22 +40,47 @@ impl Parser {
             Err(_) => {
                 self.sync();
                 Stmt::Empty
-            },
+            }
         }
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
-        if self.advance_if(vec![TokenType::Print]) {
-            return self.print_statement();
+        let token = self.peek();
+
+        match token.kind() {
+            TokenType::Print => {
+                self.advance();
+                self.print_statement()
+            }
+            TokenType::LeftBrace => {
+                self.advance();
+                self.block_statement()
+            }
+
+            _ => self.expression_statement(),
+        }
+    }
+
+    fn block_statement(&mut self) -> Result<Stmt, LoxError> {
+        Ok(Stmt::Block(self.block()?))
+    }
+
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements = vec![];
+
+        while !self.check(TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration())
         }
 
-        self.expression_statement()
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(statements)
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
         let name = self.consume(TokenType::Identifier, "Expect variable name.")?;
 
-        let initializer = if self.advance_if(vec![TokenType::Equal]) {
+        let initializer = if let TokenType::Equal = self.peek().kind() {
+            self.advance();
             self.expression()?
         } else {
             Expr::Empty
@@ -82,19 +107,42 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expr, LoxError> {
+        let expr = self.equality()?;
+
+        if let TokenType::Equal = self.peek().kind() {
+            self.advance();
+            let equals = self.previous();
+            let value = self.assignment()?;
+
+            if let Expr::Variable(name) = expr {
+                return Ok(Expr::Assign(name, Box::new(value)));
+            }
+
+            // "We report an error if the left-hand side isn’t a valid assignment target,
+            // but we don’t throw it because the parser isn’t in a confused state where
+            // we need to go into panic mode and synchronize."
+            // May need to handle this differently
+            return Err(Lox::syntax_error(&equals, "Invalid assignment target."));
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;
 
-        while self.advance_if(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
+        while let TokenType::BangEqual | TokenType::EqualEqual = self.peek().kind() {
+            self.advance();
             let token = self.previous();
             let operator = match token.kind() {
                 TokenType::BangEqual => BinOp::new(BinOpType::NotEqual, token),
                 TokenType::EqualEqual => BinOp::new(BinOpType::Equal, token),
 
-                _ => unreachable!(),
+                _ => unreachable!("Bad equality"),
             };
             let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
@@ -110,12 +158,12 @@ impl Parser {
     fn comparison(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.term()?;
 
-        while self.advance_if(vec![
-            TokenType::Greater,
-            TokenType::GreaterEqual,
-            TokenType::Less,
-            TokenType::LessEqual,
-        ]) {
+        while let TokenType::Greater
+        | TokenType::GreaterEqual
+        | TokenType::Less
+        | TokenType::LessEqual = self.peek().kind()
+        {
+            self.advance();
             let token = self.previous();
             let operator = match token.kind() {
                 TokenType::Greater => BinOp::new(BinOpType::Greater, token),
@@ -123,7 +171,7 @@ impl Parser {
                 TokenType::Less => BinOp::new(BinOpType::Less, token),
                 TokenType::LessEqual => BinOp::new(BinOpType::LessEqual, token),
 
-                _ => unreachable!(),
+                _ => unreachable!("Bad comparison"),
             };
             let right = Box::new(self.term()?);
             expr = Expr::Binary {
@@ -139,13 +187,14 @@ impl Parser {
     fn term(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.factor()?;
 
-        while self.advance_if(vec![TokenType::Minus, TokenType::Plus]) {
+        while let TokenType::Minus | TokenType::Plus = self.peek().kind() {
+            self.advance();
             let token = self.previous();
             let operator = match token.kind() {
                 TokenType::Minus => BinOp::new(BinOpType::Subtract, token),
                 TokenType::Plus => BinOp::new(BinOpType::Add, token),
 
-                _ => unreachable!(),
+                _ => unreachable!("Bad term"),
             };
             let right = Box::new(self.factor()?);
             expr = Expr::Binary {
@@ -161,13 +210,14 @@ impl Parser {
     fn factor(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.unary()?;
 
-        while self.advance_if(vec![TokenType::Slash, TokenType::Star]) {
+        while let TokenType::Slash | TokenType::Star = self.peek().kind() {
+            self.advance();
             let token = self.previous();
             let operator = match token.kind() {
                 TokenType::Slash => BinOp::new(BinOpType::Divide, token),
                 TokenType::Star => BinOp::new(BinOpType::Multiply, token),
 
-                _ => unreachable!(),
+                _ => unreachable!("Bad factor"),
             };
             let right = Box::new(self.unary()?);
             expr = Expr::Binary {
@@ -181,13 +231,14 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, LoxError> {
-        if self.advance_if(vec![TokenType::Bang, TokenType::Minus]) {
+        if let TokenType::Bang | TokenType::Minus = self.peek().kind() {
+            self.advance();
             let token = self.previous();
             let operator = match token.kind() {
                 TokenType::Bang => UnOp::new(UnOpType::Not, token),
                 TokenType::Minus => UnOp::new(UnOpType::Negative, token),
 
-                _ => unreachable!(),
+                _ => unreachable!("Bad factor"),
             };
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
@@ -197,33 +248,25 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
-        // 99% this can be done better with a match expression
-        if self.advance_if(vec![TokenType::False]) {
-            return Ok(Expr::Literal(Value::Bool(false)));
-        }
-        if self.advance_if(vec![TokenType::True]) {
-            return Ok(Expr::Literal(Value::Bool(true)));
-        }
-        if self.advance_if(vec![TokenType::Nil]) {
-            return Ok(Expr::Literal(Value::Nil));
-        }
+        let token = self.peek();
 
-        if self.advance_if(vec![TokenType::Number, TokenType::String]) {
-            return Ok(Expr::Literal(self.previous().literal()));
-        }
+        let expr = match token.kind() {
+            TokenType::False => Expr::Literal(Value::Bool(false)),
+            TokenType::True => Expr::Literal(Value::Bool(true)),
+            TokenType::Nil => Expr::Literal(Value::Nil),
+            TokenType::Number | TokenType::String => Expr::Literal(token.literal()),
+            TokenType::Identifier => Expr::Variable(token.clone()),
+            TokenType::LeftParen => {
+                let expr = self.expression()?;
+                self.consume(TokenType::RightParen, "Expect ')' after expression.")?;
+                Expr::Grouping(Box::new(expr))
+            }
 
-        if self.advance_if(vec![TokenType::Identifier]) {
-            return Ok(Expr::Variable(self.previous()));
-        }
+            _ => return Err(Lox::syntax_error(token, "Expect Expression")),
+        };
 
-        if self.advance_if(vec![TokenType::LeftParen]) {
-            let expr = self.expression()?;
-            self.consume(TokenType::RightParen, "Expect ')' after expression.")
-                .unwrap();
-            return Ok(Expr::Grouping(Box::new(expr)));
-        }
-
-        Err(Lox::syntax_error(self.peek(), "Expect expression"))
+        self.advance();
+        Ok(expr)
     }
 
     fn consume<S: Into<String>>(&mut self, kind: TokenType, message: S) -> Result<Token, LoxError> {
@@ -243,17 +286,6 @@ impl Parser {
             self.current += 1;
         }
         self.previous()
-    }
-
-    fn advance_if(&mut self, kinds: Vec<TokenType>) -> bool {
-        for kind in kinds {
-            if self.check(kind) {
-                self.advance();
-                return true;
-            }
-        }
-
-        false
     }
 
     fn is_at_end(&self) -> bool {

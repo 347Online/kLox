@@ -1,32 +1,35 @@
 use crate::{
+    environment::Environment,
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOpType, UnOpType, Value}, environment::Environment,
+    token::{BinOpType, UnOpType, Value},
 };
 
 #[derive(Default)]
 pub struct Interpreter {
-    env: Environment
+    env: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
-            env: Environment::new()
+            env: Environment::new(),
         }
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
+        let environment = self.env.clone();
+
         for stmt in statements {
-            if let Err(error) = self.execute(stmt) {
+            if let Err(error) = self.execute(stmt, &environment) {
                 eprintln!("{}", error);
                 break;
             }
         }
     }
 
-    fn execute(&mut self, stmt: Stmt) -> Result<(), LoxError> {
+    fn execute(&mut self, stmt: Stmt, environment: &Environment) -> Result<(), LoxError> {
         match stmt {
             Stmt::Expr(expr) => {
                 self.evaluate(expr)?;
@@ -40,8 +43,15 @@ impl Interpreter {
                 let value = self.evaluate(initializer)?;
                 self.env.define(name.lexeme(), value);
             }
+            Stmt::Block(statements) => {
+                let environment = Environment::new_enclosed(environment);
 
-            Stmt::Empty => ()
+                for stmt in statements {
+                    self.execute(stmt, &environment)?;
+                }
+            }
+
+            Stmt::Empty => (),
         }
 
         Ok(())
@@ -58,7 +68,7 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&self, expr: Expr) -> Result<Value, LoxError> {
+    fn evaluate(&mut self, expr: Expr) -> Result<Value, LoxError> {
         match expr {
             Expr::Empty => Ok(Value::Nil),
 
@@ -85,8 +95,12 @@ impl Interpreter {
                 }
             }
 
-            Expr::Variable(name) => {
-                Ok(self.env.get(name)?)
+            Expr::Variable(name) => Ok(self.env.get(name)?),
+
+            Expr::Assign(name, expr) => {
+                let value = self.evaluate(*expr)?;
+                self.env.assign(name, value.clone())?;
+                Ok(value)
             }
 
             Expr::Binary {

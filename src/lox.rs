@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    interpreter::{Interpreter},
+    interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
     token::{Token, TokenType},
@@ -67,7 +67,7 @@ impl Lox {
 
     pub fn run_prompt() {
         println!("klox, yet another Lox implementation, Katie Janzen 2023");
-        
+
         let stdin = stdin();
         let mut stdout = stdout();
         let mut interpreter = Interpreter::new();
