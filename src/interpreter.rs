@@ -7,11 +7,11 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct Interpreter<'a> {
-    env: Environment<'a>,
+pub struct Interpreter {
+    env: Environment,
 }
 
-impl<'a> Interpreter<'a> {
+impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
             env: Environment::new(),
@@ -41,7 +41,10 @@ impl<'a> Interpreter<'a> {
                 let value = self.evaluate(initializer)?;
                 self.env.define(name.lexeme(), value);
             }
-            Stmt::Block(statements) => todo!(),
+            Stmt::Block(statements) => {
+                let mut block_env = Environment::new();
+                // block_env.chain(&mut self.env);
+            },
 
             Stmt::Empty => (),
         }

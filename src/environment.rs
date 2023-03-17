@@ -6,18 +6,22 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct Environment<'a> {
+pub struct Environment {
     values: HashMap<String, Value>,
-    enclosing: Option<&'a mut Environment<'a>>,
+    // enclosing: Option<Environment>,
 }
 
-impl<'a> Environment<'a> {
+impl Environment {
     pub fn new() -> Self {
         Environment {
             values: HashMap::new(),
-            enclosing: None,
+            // enclosing: None,
         }
     }
+
+    // pub fn chain(&mut self, environment: &mut Environment) {
+    //     self.enclosing = Some(environment);
+    // }
 
     pub fn define(&mut self, name: String, value: Value) {
         self.values.insert(name, value);
@@ -28,9 +32,9 @@ impl<'a> Environment<'a> {
             return Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
         };
 
-        if let Some(envr) = &self.enclosing {
-            return envr.get(name);
-        }
+        // if let Some(envr) = &self.enclosing {
+        //     return envr.get(name);
+        // }
 
         Ok(value.clone())
     }
@@ -43,10 +47,10 @@ impl<'a> Environment<'a> {
             return Ok(());
         }
 
-        if let Some(ref mut environment) = &mut self.enclosing {
-            environment.assign(name, value)?;
-            return Ok(());
-        }
+        // if let Some(ref mut environment) = &mut self.enclosing {
+        //     environment.assign(name, value)?;
+        //     return Ok(());
+        // }
 
         Err(Lox::runtime_error(
             &name,
