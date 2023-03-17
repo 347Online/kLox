@@ -2,7 +2,7 @@ use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value},
+    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value},
 };
 
 pub struct Parser {
@@ -48,10 +48,26 @@ impl Parser {
         let token = self.peek();
 
         match token.kind() {
+            TokenType::For => {
+                self.advance();
+                self.for_statement()
+            }
+
+            TokenType::If => {
+                self.advance();
+                self.if_statement()
+            }
+
             TokenType::Print => {
                 self.advance();
                 self.print_statement()
             }
+
+            TokenType::While => {
+                self.advance();
+                self.while_statment()
+            }
+
             TokenType::LeftBrace => {
                 self.advance();
                 self.block_statement()
@@ -59,6 +75,89 @@ impl Parser {
 
             _ => self.expression_statement(),
         }
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'")?;
+
+        // Initializer
+        let initializer = match self.peek().kind() {
+            TokenType::Semicolon => {
+                self.advance();
+                Stmt::Empty
+            }
+
+            TokenType::Var => {
+                self.advance();
+                self.var_declaration()?
+            }
+
+            _ => self.expression_statement()?,
+        };
+
+        // Condition
+        let mut condition = if self.check(TokenType::Semicolon) {
+            Expr::Empty
+        } else {
+            self.expression()?
+        };
+        self.consume(TokenType::Semicolon, "")?;
+
+        // Increment
+        let increment = if self.check(TokenType::RightParen) {
+            Expr::Empty
+        } else {
+            self.expression()?
+        };
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+
+        let mut body = self.statement()?;
+
+        if let Expr::Empty = increment {
+        } else {
+            body = Stmt::Block(vec![body, Stmt::Expr(increment)]);
+        }
+
+        if let Expr::Empty = condition {
+            condition = Expr::Literal(Value::Bool(true));
+        }
+
+        body = Stmt::While(condition, Box::new(body));
+
+        if let Stmt::Empty = initializer {
+        } else {
+            body = Stmt::Block(vec![initializer, body]);
+        }
+
+        Ok(body)
+    }
+
+    fn while_statment(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'while'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let body = self.statement()?;
+
+        Ok(Stmt::While(condition, Box::new(body)))
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let then_branch = self.statement()?;
+        if let TokenType::Else = self.peek().kind() {
+            self.advance();
+            let else_branch = self.statement()?;
+            return Ok(Stmt::IfElse(
+                condition,
+                Box::new(then_branch),
+                Box::new(else_branch),
+            ));
+        }
+
+        Ok(Stmt::If(condition, Box::new(then_branch)))
     }
 
     fn block_statement(&mut self) -> Result<Stmt, LoxError> {
@@ -111,7 +210,7 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Result<Expr, LoxError> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         if let TokenType::Equal = self.peek().kind() {
             self.advance();
@@ -132,6 +231,34 @@ impl Parser {
         Ok(expr)
     }
 
+    fn or(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.and()?;
+
+        while let TokenType::Or = self.peek().kind() {
+            self.advance();
+            let token = self.previous();
+            let operator = LogOp::new(LogOpType::Or, token);
+            let right = self.and()?;
+            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.equality()?;
+
+        while let TokenType::And = self.peek().kind() {
+            self.advance();
+            let token = self.previous();
+            let operator = LogOp::new(LogOpType::And, token);
+            let right = self.equality()?;
+            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;
 
@@ -142,14 +269,10 @@ impl Parser {
                 TokenType::BangEqual => BinOp::new(BinOpType::NotEqual, token),
                 TokenType::EqualEqual => BinOp::new(BinOpType::Equal, token),
 
-                _ => unreachable!("Bad equality"),
+                _ => unreachable!(),
             };
-            let right = Box::new(self.comparison()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.comparison()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -171,14 +294,10 @@ impl Parser {
                 TokenType::Less => BinOp::new(BinOpType::Less, token),
                 TokenType::LessEqual => BinOp::new(BinOpType::LessEqual, token),
 
-                _ => unreachable!("Bad comparison"),
+                _ => unreachable!(),
             };
-            let right = Box::new(self.term()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.term()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -194,14 +313,10 @@ impl Parser {
                 TokenType::Minus => BinOp::new(BinOpType::Subtract, token),
                 TokenType::Plus => BinOp::new(BinOpType::Add, token),
 
-                _ => unreachable!("Bad term"),
+                _ => unreachable!(),
             };
-            let right = Box::new(self.factor()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            }
+            let right = self.factor()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right))
         }
 
         Ok(expr)
@@ -217,14 +332,10 @@ impl Parser {
                 TokenType::Slash => BinOp::new(BinOpType::Divide, token),
                 TokenType::Star => BinOp::new(BinOpType::Multiply, token),
 
-                _ => unreachable!("Bad factor"),
+                _ => unreachable!(),
             };
-            let right = Box::new(self.unary()?);
-            expr = Expr::Binary {
-                operator,
-                left: Box::new(expr),
-                right,
-            };
+            let right = self.unary()?;
+            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
         }
 
         Ok(expr)
@@ -238,10 +349,10 @@ impl Parser {
                 TokenType::Bang => UnOp::new(UnOpType::Not, token),
                 TokenType::Minus => UnOp::new(UnOpType::Negative, token),
 
-                _ => unreachable!("Bad factor"),
+                _ => unreachable!(),
             };
-            let right = Box::new(self.unary()?);
-            return Ok(Expr::Unary { operator, right });
+            let right = self.unary()?;
+            return Ok(Expr::Unary(operator, Box::new(right)));
         }
 
         self.primary()

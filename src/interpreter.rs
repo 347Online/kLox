@@ -3,7 +3,7 @@ use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOpType, UnOpType, Value},
+    token::{BinOpType, LogOpType, UnOpType, Value},
 };
 
 #[derive(Default)]
@@ -32,15 +32,15 @@ impl Interpreter {
     fn execute(&mut self, stmt: Stmt, environment: &Environment) -> Result<(), LoxError> {
         match stmt {
             Stmt::Expr(expr) => {
-                self.evaluate(expr)?;
+                self.evaluate(&expr)?;
             }
             Stmt::Print(expr) => {
-                let value = self.evaluate(expr)?;
+                let value = self.evaluate(&expr)?;
                 let output = Interpreter::output(value);
                 println!("{}", output)
             }
             Stmt::Var(name, initializer) => {
-                let value = self.evaluate(initializer)?;
+                let value = self.evaluate(&initializer)?;
                 self.env.define(name.lexeme(), value);
             }
             Stmt::Block(statements) => {
@@ -48,6 +48,29 @@ impl Interpreter {
 
                 for stmt in statements {
                     self.execute(stmt, &environment)?;
+                }
+            }
+
+            Stmt::If(condition, then_branch) => {
+                let environment = self.env.clone();
+                if Interpreter::is_truthy(&self.evaluate(&condition)?) {
+                    self.execute(*then_branch, &environment)?;
+                }
+            }
+            Stmt::IfElse(condition, then_branch, else_branch) => {
+                let environment = self.env.clone();
+                if Interpreter::is_truthy(&self.evaluate(&condition)?) {
+                    self.execute(*then_branch, &environment)?;
+                } else {
+                    self.execute(*else_branch, &environment)?;
+                }
+            }
+
+            Stmt::While(condition, body) => {
+                let environment = self.env.clone();
+
+                while Interpreter::is_truthy(&self.evaluate(&condition)?) {
+                    self.execute(*body.clone(), &environment)?;
                 }
             }
 
@@ -68,20 +91,20 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&mut self, expr: Expr) -> Result<Value, LoxError> {
+    fn evaluate(&mut self, expr: &Expr) -> Result<Value, LoxError> {
         match expr {
             Expr::Empty => Ok(Value::Nil),
 
-            Expr::Grouping(sub_expr) => self.evaluate(*sub_expr),
+            Expr::Grouping(sub_expr) => self.evaluate(sub_expr),
 
-            Expr::Literal(value) => Ok(value),
+            Expr::Literal(value) => Ok(value.clone()),
 
-            Expr::Unary { operator, right } => {
+            Expr::Unary(operator, right) => {
                 let op_type = operator.kind();
-                let right = self.evaluate(*right)?;
+                let right = self.evaluate(right)?;
 
                 match op_type {
-                    UnOpType::Not => Ok(Value::Bool(!Interpreter::is_truthy(right))),
+                    UnOpType::Not => Ok(Value::Bool(!Interpreter::is_truthy(&right))),
                     UnOpType::Negative => {
                         if let Value::Number(value) = right {
                             Ok(Value::Number(-value))
@@ -98,19 +121,37 @@ impl Interpreter {
             Expr::Variable(name) => Ok(self.env.get(name)?),
 
             Expr::Assign(name, expr) => {
-                let value = self.evaluate(*expr)?;
+                let value = self.evaluate(expr)?;
                 self.env.assign(name, value.clone())?;
                 Ok(value)
             }
 
-            Expr::Binary {
-                operator,
-                left,
-                right,
-            } => {
+            Expr::Logical(operator, left, right) => {
                 let op_type = operator.kind();
-                let left = self.evaluate(*left)?;
-                let right = self.evaluate(*right)?;
+                let left = self.evaluate(left)?;
+
+                match op_type {
+                    LogOpType::And => {
+                        if Interpreter::is_truthy(&left) {
+                            Ok(self.evaluate(right)?)
+                        } else {
+                            Ok(left)
+                        }
+                    }
+                    LogOpType::Or => {
+                        if Interpreter::is_truthy(&left) {
+                            Ok(left)
+                        } else {
+                            Ok(self.evaluate(right)?)
+                        }
+                    }
+                }
+            }
+
+            Expr::Binary(operator, left, right) => {
+                let op_type = operator.kind();
+                let left = self.evaluate(left)?;
+                let right = self.evaluate(right)?;
 
                 match (op_type, left, right) {
                     // Arithmetic
@@ -177,10 +218,10 @@ impl Interpreter {
         }
     }
 
-    fn is_truthy(value: Value) -> bool {
+    fn is_truthy(value: &Value) -> bool {
         match value {
             Value::Nil => false,
-            Value::Bool(boolean) => boolean,
+            Value::Bool(boolean) => *boolean,
             _ => true,
         }
     }
