@@ -1,5 +1,5 @@
 use crate::{
-    environment::{Environment},
+    environment::Environment,
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
@@ -72,7 +72,7 @@ impl Interpreter {
                 while Interpreter::is_truthy(&self.evaluate(&condition)?) {
                     self.execute(*body.clone(), &environment)?;
                 }
-            },
+            }
 
             Stmt::Empty => (),
         }
