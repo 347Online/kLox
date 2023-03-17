@@ -1,5 +1,5 @@
 use crate::{
-    environment::{Environment},
+    environment::Environment,
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
@@ -50,7 +50,7 @@ impl Interpreter {
                 for stmt in statements {
                     self.execute(stmt, &environment)?;
                 }
-            },
+            }
 
             Stmt::Empty => (),
         }
