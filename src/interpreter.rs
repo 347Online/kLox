@@ -70,8 +70,6 @@ impl Interpreter {
                 let environment = self.env.clone();
 
                 while Interpreter::is_truthy(&self.evaluate(&condition)?) {
-                    // It doesn't feel wholesome to use clone here
-                    // TODO: Ideally find a way around this
                     self.execute(*body.clone(), &environment)?;
                 }
             },
