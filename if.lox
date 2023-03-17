@@ -1,0 +1,7 @@
+var something = "hello";
+
+if (something) {
+  print something;
+} else {
+  print "nothing";
+}

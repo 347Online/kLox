@@ -51,6 +51,23 @@ impl Interpreter {
                 }
             }
 
+            Stmt::If(condition, then_branch) => {
+                let environment = self.env.clone();
+                let condition = self.evaluate(condition)?;
+                if Interpreter::is_truthy(condition) {
+                    self.execute(*then_branch, &environment)?;
+                }
+            },
+            Stmt::IfElse(condition, then_branch, else_branch) => {
+                let environment = self.env.clone();
+                let condition = self.evaluate(condition)?;
+                if Interpreter::is_truthy(condition) {
+                    self.execute(*then_branch, &environment)?;
+                } else {
+                    self.execute(*else_branch, &environment)?;
+                }
+            },
+
             Stmt::Empty => (),
         }
 

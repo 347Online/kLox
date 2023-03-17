@@ -48,6 +48,11 @@ impl Parser {
         let token = self.peek();
 
         match token.kind() {
+            TokenType::If => {
+                self.advance();
+                self.if_statement()
+            }
+
             TokenType::Print => {
                 self.advance();
                 self.print_statement()
@@ -59,6 +64,21 @@ impl Parser {
 
             _ => self.expression_statement(),
         }
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let then_branch = Box::new(self.statement()?);
+        if let TokenType::Else = self.peek().kind() {
+            self.advance();
+            let else_branch = Box::new(self.statement()?);
+            return Ok(Stmt::IfElse(condition, then_branch, else_branch))
+        }
+
+        Ok(Stmt::If(condition, then_branch))
     }
 
     fn block_statement(&mut self) -> Result<Stmt, LoxError> {
