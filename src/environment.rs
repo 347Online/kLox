@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{collections::HashMap, rc::Rc, cell::RefCell, borrow::BorrowMut};
 
 use crate::{
     lox::{Lox, LoxError},
@@ -50,10 +50,11 @@ impl Environment {
             return Ok(());
         }
 
-        // if let Some(ref mut environment) = &mut self.enclosing {
-        //     environment.assign(name, value)?;
-        //     return Ok(());
-        // }
+        if let Some(rc) = &mut self.enclosing {
+            let enclosing = Rc::get_mut(rc).expect("Failed to assign to variable");
+            enclosing.assign(name, value)?;
+            return Ok(());
+        }
 
         Err(Lox::runtime_error(
             &name,
