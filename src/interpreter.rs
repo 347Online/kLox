@@ -1,7 +1,5 @@
-use std::{cell::RefCell};
-
 use crate::{
-    environment::Environment,
+    environment::{Environment},
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
@@ -10,26 +8,29 @@ use crate::{
 
 #[derive(Default)]
 pub struct Interpreter {
-    env: RefCell<Environment>,
+    env: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
-            env: RefCell::new(Environment::new()),
+            env: Environment::new(),
         }
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
+        let data = self.env.data.clone();
+        let environment = Environment { data };
+
         for stmt in statements {
-            if let Err(error) = self.execute(stmt) {
+            if let Err(error) = self.execute(stmt, &environment) {
                 eprintln!("{}", error);
                 break;
             }
         }
     }
 
-    fn execute(&mut self, stmt: Stmt) -> Result<(), LoxError> {
+    fn execute(&mut self, stmt: Stmt, environment: &Environment) -> Result<(), LoxError> {
         match stmt {
             Stmt::Expr(expr) => {
                 self.evaluate(expr)?;
@@ -41,20 +42,14 @@ impl Interpreter {
             }
             Stmt::Var(name, initializer) => {
                 let value = self.evaluate(initializer)?;
-                self.env.borrow_mut().define(name.lexeme(), value);
+                self.env.define(name.lexeme(), value);
             }
             Stmt::Block(statements) => {
-                let prev_env = self.env.take();
-                self.env = RefCell::new(Environment::new());
+                let environment = Environment::new_enclosed(environment);
 
                 for stmt in statements {
-                    if let Err(error) = self.execute(stmt) {
-                        self.env = RefCell::new(prev_env);
-                        return Err(error);
-                    }
+                    self.execute(stmt, &environment)?;
                 }
-
-                self.env = RefCell::new(prev_env);
             },
 
             Stmt::Empty => (),
@@ -101,11 +96,11 @@ impl Interpreter {
                 }
             }
 
-            Expr::Variable(name) => Ok(self.env.borrow().get(name)?),
+            Expr::Variable(name) => Ok(self.env.get(name)?),
 
             Expr::Assign(name, expr) => {
                 let value = self.evaluate(*expr)?;
-                self.env.borrow_mut().assign(name, value.clone())?;
+                self.env.assign(name, value.clone())?;
                 Ok(value)
             }
 
