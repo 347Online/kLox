@@ -48,6 +48,11 @@ impl Parser {
         let token = self.peek();
 
         match token.kind() {
+            TokenType::For => {
+                self.advance();
+                self.for_statement()
+            }
+
             TokenType::If => {
                 self.advance();
                 self.if_statement()
@@ -62,7 +67,7 @@ impl Parser {
                 self.advance();
                 self.while_statment()
             }
-            
+
             TokenType::LeftBrace => {
                 self.advance();
                 self.block_statement()
@@ -70,6 +75,61 @@ impl Parser {
 
             _ => self.expression_statement(),
         }
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'")?;
+
+        // Initializer
+        let initializer = match self.peek().kind() {
+            TokenType::Semicolon => {
+                self.advance();
+                Stmt::Empty
+            }
+
+            TokenType::Var => {
+                self.advance();
+                self.var_declaration()?
+            }
+
+            _ => self.expression_statement()?,
+        };
+
+        // Condition
+        let mut condition = if self.check(TokenType::Semicolon) {
+            Expr::Empty
+        } else {
+            self.expression()?
+        };
+        self.consume(TokenType::Semicolon, "")?;
+
+        // Increment
+        let increment = if self.check(TokenType::RightParen) {
+            Expr::Empty
+        } else {
+            self.expression()?
+        };
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+
+        let mut body = self.statement()?;
+
+        if let Expr::Empty = increment {
+        } else {
+            body = Stmt::Block(vec![body, Stmt::Expr(increment)]);
+        }
+
+        if let Expr::Empty = condition {
+            condition = Expr::Literal(Value::Bool(true));
+        }
+
+        body = Stmt::While(condition, Box::new(body));
+
+        if let Stmt::Empty = initializer {
+        } else {
+            body = Stmt::Block(vec![initializer, body]);
+        }
+
+        Ok(body)
     }
 
     fn while_statment(&mut self) -> Result<Stmt, LoxError> {
@@ -90,7 +150,11 @@ impl Parser {
         if let TokenType::Else = self.peek().kind() {
             self.advance();
             let else_branch = self.statement()?;
-            return Ok(Stmt::IfElse(condition, Box::new(then_branch), Box::new(else_branch)));
+            return Ok(Stmt::IfElse(
+                condition,
+                Box::new(then_branch),
+                Box::new(else_branch),
+            ));
         }
 
         Ok(Stmt::If(condition, Box::new(then_branch)))
