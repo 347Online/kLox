@@ -65,7 +65,7 @@ impl Lox {
         Lox::run(code, &mut interpreter);
     }
 
-    pub fn run_prompt<'a>() {
+    pub fn run_prompt() {
         println!("klox, yet another Lox implementation, Katie Janzen 2023");
 
         let stdin = stdin();
