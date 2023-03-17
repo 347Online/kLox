@@ -43,7 +43,7 @@ impl Environment {
         self.data.borrow_mut().values.insert(name, value);
     }
 
-    pub fn get(&self, name: Token) -> Result<Value, LoxError> {
+    pub fn get(&self, name: &Token) -> Result<Value, LoxError> {
         let data = self.data.borrow();
 
         if let Some(value) = data.values.get(&name.lexeme()) {
@@ -55,12 +55,12 @@ impl Environment {
         }
 
         Err(Lox::runtime_error(
-            &name,
+            name,
             format!("Undefined variable '{}'.", name.lexeme()),
         ))
     }
 
-    pub fn assign(&self, name: Token, value: Value) -> Result<(), LoxError> {
+    pub fn assign(&self, name: &Token, value: Value) -> Result<(), LoxError> {
         let mut data = self.data.borrow_mut();
         let key = name.lexeme();
         // ???
@@ -75,7 +75,7 @@ impl Environment {
         }
 
         Err(Lox::runtime_error(
-            &name,
+            name,
             format!("Undefined variable '{}'.", name.lexeme()),
         ))
     }

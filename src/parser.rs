@@ -57,6 +57,12 @@ impl Parser {
                 self.advance();
                 self.print_statement()
             }
+
+            TokenType::While => {
+                self.advance();
+                self.while_statment()
+            }
+            
             TokenType::LeftBrace => {
                 self.advance();
                 self.block_statement()
@@ -66,19 +72,28 @@ impl Parser {
         }
     }
 
+    fn while_statment(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'while'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after condition.")?;
+        let body = self.statement()?;
+
+        Ok(Stmt::While(condition, Box::new(body)))
+    }
+
     fn if_statement(&mut self) -> Result<Stmt, LoxError> {
         self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
         let condition = self.expression()?;
         self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
 
-        let then_branch = Box::new(self.statement()?);
+        let then_branch = self.statement()?;
         if let TokenType::Else = self.peek().kind() {
             self.advance();
-            let else_branch = Box::new(self.statement()?);
-            return Ok(Stmt::IfElse(condition, then_branch, else_branch));
+            let else_branch = self.statement()?;
+            return Ok(Stmt::IfElse(condition, Box::new(then_branch), Box::new(else_branch)));
         }
 
-        Ok(Stmt::If(condition, then_branch))
+        Ok(Stmt::If(condition, Box::new(then_branch)))
     }
 
     fn block_statement(&mut self) -> Result<Stmt, LoxError> {

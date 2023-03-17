@@ -9,4 +9,5 @@ pub enum Stmt {
     Block(Vec<Stmt>),
     If(Expr, Box<Stmt>),
     IfElse(Expr, Box<Stmt>, Box<Stmt>),
+    While(Expr, Box<Stmt>),
 }

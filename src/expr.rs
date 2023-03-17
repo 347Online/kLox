@@ -6,10 +6,6 @@ pub enum Expr {
     Binary(BinOp, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Value),
-    // Unary {
-    //     operator: UnOp,
-    //     right: Box<Expr>,
-    // },
     Unary(UnOp, Box<Expr>),
     Variable(Token),
     Assign(Token, Box<Expr>),
