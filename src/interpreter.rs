@@ -19,8 +19,7 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
-        let data = self.env.data.clone();
-        let environment = Environment { data };
+        let environment = self.env.clone();
 
         for stmt in statements {
             if let Err(error) = self.execute(stmt, &environment) {

@@ -13,7 +13,7 @@ pub struct EnvironmentData {
 
 #[derive(Debug, Default, Clone)]
 pub struct Environment {
-    pub data: Rc<RefCell<EnvironmentData>>,
+    data: Rc<RefCell<EnvironmentData>>,
 }
 
 impl Environment {
