@@ -20,6 +20,31 @@ pub enum UnOpType {
     Negative,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum LogOpType {
+    And,
+    Or,
+}
+
+#[derive(Debug, Clone)]
+pub struct LogOp {
+    kind: LogOpType,
+    token: Token,
+}
+impl LogOp {
+    pub fn new(kind: LogOpType, token: Token) -> LogOp {
+        LogOp { kind, token }
+    }
+
+    pub fn kind(&self) -> LogOpType {
+        self.kind
+    }
+
+    pub fn token(&self) -> Token {
+        self.token.clone()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BinOp {
     kind: BinOpType,
