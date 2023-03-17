@@ -1,8 +1,9 @@
-use crate::token::{BinOp, Token, UnOp, Value};
+use crate::token::{BinOp, Token, UnOp, Value, LogOp};
 
 #[derive(Debug, Clone)]
 pub enum Expr {
     Empty,
+    // TODO: Refactor this to tuple type rather than struct
     Binary {
         operator: BinOp,
         left: Box<Expr>,
@@ -16,5 +17,5 @@ pub enum Expr {
     },
     Variable(Token),
     Assign(Token, Box<Expr>),
-    Logical(Token, Box<Expr>, Box<Expr>),
+    Logical(LogOp, Box<Expr>, Box<Expr>),
 }
