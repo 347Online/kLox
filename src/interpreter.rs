@@ -120,6 +120,13 @@ impl Interpreter {
                 Ok(value)
             }
 
+            Expr::Logical(operator, left, right) => {
+                let op_type = operator.kind();
+                let left = self.evaluate(*left)?;
+
+                unimplemented!()
+            },
+
             Expr::Binary {
                 operator,
                 left,
