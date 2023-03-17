@@ -1,5 +1,5 @@
 use crate::{
-    environment::Environment,
+    environment::{Environment},
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
@@ -67,8 +67,12 @@ impl Interpreter {
             }
 
             Stmt::While(condition, body) => {
+                let environment = self.env.clone();
+
                 while Interpreter::is_truthy(&self.evaluate(&condition)?) {
-                    
+                    // It doesn't feel wholesome to use clone here
+                    // TODO: Ideally find a way around this
+                    self.execute(*body.clone(), &environment)?;
                 }
             },
 
