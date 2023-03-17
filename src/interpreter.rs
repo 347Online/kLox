@@ -1,3 +1,5 @@
+use std::{cell::RefCell};
+
 use crate::{
     environment::Environment,
     expr::Expr,
@@ -8,13 +10,13 @@ use crate::{
 
 #[derive(Default)]
 pub struct Interpreter {
-    env: Environment,
+    env: RefCell<Environment>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
-            env: Environment::new(),
+            env: RefCell::new(Environment::new()),
         }
     }
 
@@ -39,11 +41,20 @@ impl Interpreter {
             }
             Stmt::Var(name, initializer) => {
                 let value = self.evaluate(initializer)?;
-                self.env.define(name.lexeme(), value);
+                self.env.borrow_mut().define(name.lexeme(), value);
             }
             Stmt::Block(statements) => {
-                let mut block_env = Environment::new();
-                // block_env.chain(&mut self.env);
+                let prev_env = self.env.take();
+                self.env = RefCell::new(Environment::new());
+
+                for stmt in statements {
+                    if let Err(error) = self.execute(stmt) {
+                        self.env = RefCell::new(prev_env);
+                        return Err(error);
+                    }
+                }
+
+                self.env = RefCell::new(prev_env);
             },
 
             Stmt::Empty => (),
@@ -90,11 +101,11 @@ impl Interpreter {
                 }
             }
 
-            Expr::Variable(name) => Ok(self.env.get(name)?),
+            Expr::Variable(name) => Ok(self.env.borrow().get(name)?),
 
             Expr::Assign(name, expr) => {
                 let value = self.evaluate(*expr)?;
-                self.env.assign(name, value.clone())?;
+                self.env.borrow_mut().assign(name, value.clone())?;
                 Ok(value)
             }
 

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell, borrow::BorrowMut};
+use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 use crate::{
     lox::{Lox, LoxError},
