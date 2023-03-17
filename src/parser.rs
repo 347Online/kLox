@@ -2,7 +2,7 @@ use crate::{
     expr::Expr,
     lox::{Lox, LoxError},
     stmt::Stmt,
-    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value},
+    token::{BinOp, BinOpType, Token, TokenType, UnOp, UnOpType, Value, LogOp, LogOpType},
 };
 
 pub struct Parser {
@@ -157,7 +157,8 @@ impl Parser {
 
         while let TokenType::Or = self.peek().kind() {
             self.advance();
-            let operator = self.previous();
+            let token = self.previous();
+            let operator = LogOp::new(LogOpType::Or, token);
             let right = self.and()?;
             expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
         }
@@ -170,7 +171,8 @@ impl Parser {
 
         while let TokenType::And = self.peek().kind() {
             self.advance();
-            let operator = self.previous();
+            let token = self.previous();
+            let operator = LogOp::new(LogOpType::And, token);
             let right = self.equality()?;
             expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
         }
@@ -188,7 +190,7 @@ impl Parser {
                 TokenType::BangEqual => BinOp::new(BinOpType::NotEqual, token),
                 TokenType::EqualEqual => BinOp::new(BinOpType::Equal, token),
 
-                _ => unreachable!("Bad equality"),
+                _ => unreachable!(),
             };
             let right = Box::new(self.comparison()?);
             expr = Expr::Binary {
@@ -217,7 +219,7 @@ impl Parser {
                 TokenType::Less => BinOp::new(BinOpType::Less, token),
                 TokenType::LessEqual => BinOp::new(BinOpType::LessEqual, token),
 
-                _ => unreachable!("Bad comparison"),
+                _ => unreachable!(),
             };
             let right = Box::new(self.term()?);
             expr = Expr::Binary {
@@ -240,7 +242,7 @@ impl Parser {
                 TokenType::Minus => BinOp::new(BinOpType::Subtract, token),
                 TokenType::Plus => BinOp::new(BinOpType::Add, token),
 
-                _ => unreachable!("Bad term"),
+                _ => unreachable!(),
             };
             let right = Box::new(self.factor()?);
             expr = Expr::Binary {
@@ -263,7 +265,7 @@ impl Parser {
                 TokenType::Slash => BinOp::new(BinOpType::Divide, token),
                 TokenType::Star => BinOp::new(BinOpType::Multiply, token),
 
-                _ => unreachable!("Bad factor"),
+                _ => unreachable!(),
             };
             let right = Box::new(self.unary()?);
             expr = Expr::Binary {
@@ -284,7 +286,7 @@ impl Parser {
                 TokenType::Bang => UnOp::new(UnOpType::Not, token),
                 TokenType::Minus => UnOp::new(UnOpType::Negative, token),
 
-                _ => unreachable!("Bad factor"),
+                _ => unreachable!(),
             };
             let right = Box::new(self.unary()?);
             return Ok(Expr::Unary { operator, right });
