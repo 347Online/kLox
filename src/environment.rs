@@ -19,9 +19,9 @@ impl Environment {
         }
     }
 
-    // pub fn chain(&mut self, environment: &mut Environment) {
-    //     self.enclosing = Some(environment);
-    // }
+    pub fn chain(&mut self, environment: Environment) {
+        self.enclosing = Some(Rc::new(environment));
+    }
 
     pub fn define(&mut self, name: String, value: Value) {
         self.values.borrow_mut().insert(name, value);
@@ -29,15 +29,16 @@ impl Environment {
 
     pub fn get(&self, name: Token) -> Result<Value, LoxError> {
         let values = self.values.borrow();
-        let Some(value) = values.get(&name.lexeme()) else {
-            return Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
-        };
 
-        // if let Some(envr) = &self.enclosing {
-        //     return envr.get(name);
-        // }
-
-        Ok(value.clone())
+        if let Some(value) = values.get(&name.lexeme()) {
+            return Ok(value.clone());
+        }
+        
+        if let Some(enclosing) = &self.enclosing {
+            return enclosing.get(name);
+        }
+            
+        Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
     }
 
     pub fn assign(&mut self, name: Token, value: Value) -> Result<(), LoxError> {
