@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 use crate::{
     lox::{Lox, LoxError},
@@ -7,15 +7,15 @@ use crate::{
 
 #[derive(Default)]
 pub struct Environment {
-    values: HashMap<String, Value>,
-    // enclosing: Option<Environment>,
+    values: RefCell<HashMap<String, Value>>,
+    enclosing: Option<Rc<Environment>>,
 }
 
 impl Environment {
     pub fn new() -> Self {
         Environment {
-            values: HashMap::new(),
-            // enclosing: None,
+            values: RefCell::new(HashMap::new()),
+            enclosing: None,
         }
     }
 
@@ -24,11 +24,12 @@ impl Environment {
     // }
 
     pub fn define(&mut self, name: String, value: Value) {
-        self.values.insert(name, value);
+        self.values.borrow_mut().insert(name, value);
     }
 
     pub fn get(&self, name: Token) -> Result<Value, LoxError> {
-        let Some(value) = self.values.get(&name.lexeme()) else {
+        let values = self.values.borrow();
+        let Some(value) = values.get(&name.lexeme()) else {
             return Err(Lox::runtime_error(&name, format!("Undefined variable '{}'.", name.lexeme())))
         };
 
@@ -40,9 +41,10 @@ impl Environment {
     }
 
     pub fn assign(&mut self, name: Token, value: Value) -> Result<(), LoxError> {
+        let mut values = self.values.borrow_mut();
+        let key = name.lexeme();
         // ???
-        if let std::collections::hash_map::Entry::Occupied(mut e) = self.values.entry(name.lexeme())
-        {
+        if let std::collections::hash_map::Entry::Occupied(mut e) = values.entry(key) {
             e.insert(value);
             return Ok(());
         }
