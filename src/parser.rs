@@ -46,7 +46,7 @@ impl Parser {
         let result = match self.peek().kind() {
             TokenType::Fun => {
                 self.advance();
-                self.function()
+                self.function("function")
             }
 
             TokenType::Var => {
@@ -66,8 +66,8 @@ impl Parser {
         }
     }
 
-    fn function(&mut self) -> Result<Stmt, LoxError> {
-        
+    fn function<S: Into<String>>(&mut self, kind: S) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, format!("Expect {} name.", kind.into()));
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
