@@ -226,6 +226,9 @@ impl Interpreter {
                 }
 
                 if let Value::Callable(mut function) = callee {
+                    if arguments.len() != function.arity() {
+                        return Err(Lox::runtime_error(paren, format!("Expected {} arguments but got {}.", function.arity(), arguments.len())));
+                    }
                     function.call(self, arguments)?
                 } else {
                     return Err(Lox::runtime_error(paren, "Can only call functions and classes."))
