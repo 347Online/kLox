@@ -58,7 +58,7 @@ impl Lox {
     }
 
     pub fn syntax_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        let at = if token.is(TokenType::Eof) {
+        let at = if let TokenType::Eof = token.kind() {
             " at end".to_string()
         } else {
             format!(" at '{}'", token.lexeme())

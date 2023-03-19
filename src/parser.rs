@@ -398,7 +398,7 @@ impl Parser {
     }
 
     fn check(&self, kind: TokenType) -> bool {
-        !self.is_at_end() && self.peek().is(kind)
+        !self.is_at_end() && self.peek().kind() == kind
     }
 
     fn advance(&mut self) -> Token {
@@ -409,7 +409,7 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        self.peek().is(TokenType::Eof)
+        matches!(self.peek().kind(), TokenType::Eof)
     }
 
     fn peek(&self) -> &Token {
@@ -428,7 +428,7 @@ impl Parser {
         self.advance();
 
         while !self.is_at_end() {
-            if self.previous().is(TokenType::Semicolon) {
+            if let TokenType::Semicolon = self.previous().kind() {
                 return;
             }
 

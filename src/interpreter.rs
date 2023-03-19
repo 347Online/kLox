@@ -230,7 +230,9 @@ impl Interpreter {
         match (&left, &right) {
             (Value::Nil, Value::Nil) => true,
             (Value::Nil, _) => false,
-            _ => left == right,
+            (Value::Number(left_num), Value::Number(right_num)) => left_num == right_num,
+            (Value::String(left_str), Value::String(right_str)) => left_str == right_str,
+            _ => false,
         }
     }
 }
