@@ -34,13 +34,27 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Stmt {
-        let result = 'block: {
-            if let TokenType::Var = self.peek().kind() {
+        // let result = 'block: {
+        //     if let TokenType::Var = self.peek().kind() {
+        //         self.advance();
+        //         break 'block self.var_declaration();
+        //     }
+
+        //     self.statement()
+        // };
+
+        let result = match self.peek().kind() {
+            TokenType::Fun => {
                 self.advance();
-                break 'block self.var_declaration();
+                self.function()
             }
 
-            self.statement()
+            TokenType::Var => {
+                self.advance();
+                self.var_declaration()
+            }
+
+            _ => self.statement()
         };
 
         match result {
@@ -50,6 +64,10 @@ impl Parser {
                 Stmt::Empty
             }
         }
+    }
+
+    fn function(&mut self) -> Result<Stmt, LoxError> {
+        
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
