@@ -22,8 +22,7 @@ impl Interpreter {
         let environment = self.env.clone();
 
         for stmt in statements {
-            if let Err(error) = self.execute(stmt, &environment) {
-                eprintln!("{}", error);
+            if self.execute(stmt, &environment).is_err() {
                 break;
             }
         }
@@ -86,8 +85,7 @@ impl Interpreter {
             Value::Number(number) => number.to_string(),
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
-            #[allow(unused)] // TODO: Remove this
-            Value::Identifier { name } => todo!("pull value for identifier"),
+            Value::Identifier { name: _ } => todo!("pull value for identifier"),
         }
     }
 

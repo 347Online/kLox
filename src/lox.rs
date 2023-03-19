@@ -44,8 +44,7 @@ impl Lox {
     fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
-        let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
-            println!("{e}");
+        let tokens = scanner.scan_tokens().unwrap_or_else(|_| {
             vec![]
         });
 
@@ -79,6 +78,8 @@ impl Lox {
     }
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
-        LoxError::at(line, at, message, kind)
+        let error = LoxError::at(line, at, message, kind);
+        eprintln!("{}", error);
+        error
     }
 }

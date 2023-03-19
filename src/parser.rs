@@ -231,7 +231,8 @@ impl Parser {
             // but we don’t throw it because the parser isn’t in a confused state where
             // we need to go into panic mode and synchronize."
             // May need to handle this differently
-            return Err(Lox::syntax_error(&equals, "Invalid assignment target."));
+            Lox::syntax_error(&equals, "Invalid assignment target.");
+            return Ok(Expr::Empty)
         }
 
         Ok(expr)
