@@ -216,7 +216,21 @@ impl Interpreter {
                     )),
                 }
             }
-            Expr::Call(_, _, _) => todo!(),
+
+            Expr::Call(callee, paren, args) => {
+                let callee = self.evaluate(callee)?;
+
+                let mut arguments = vec![];
+                for arg in args {
+                    arguments.push(self.evaluate(arg)?);
+                }
+
+                if let Value::Callable(mut function) = callee {
+                    function.call(self, arguments)?
+                } else {
+                    return Err(Lox::runtime_error(paren, "Can only call functions and classes."))
+                }
+            },
         };
 
         Ok(value)
