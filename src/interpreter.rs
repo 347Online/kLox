@@ -10,13 +10,18 @@ use crate::{
 
 #[derive(Default)]
 pub struct Interpreter {
+    globals: Environment,
     env: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
+        let globals = Environment::new();
+        let env = Environment::new_enclosed(&globals);
+
         Interpreter {
-            env: Environment::new(),
+            globals,
+            env
         }
     }
 
