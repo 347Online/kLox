@@ -1,5 +1,5 @@
 use crate::{
-    environment::Environment,
+    environment::{Environment, self},
     error::LoxError,
     expr::Expr,
     lox::Lox,
@@ -22,6 +22,10 @@ impl Interpreter {
         Interpreter {
             env: globals
         }
+    }
+
+    pub fn env(&self) -> &Environment {
+        &self.env
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
@@ -48,13 +52,15 @@ impl Interpreter {
                 let value = self.evaluate(&initializer)?;
                 self.env.define(name.lexeme(), value);
             }
-            Stmt::Block(statements) => {
-                let environment = Environment::new_enclosed(environment);
+            // Stmt::Block(statements) => {
+            //     let environment = Environment::new_enclosed(environment);
 
-                for stmt in statements {
-                    self.execute(stmt, &environment)?;
-                }
-            }
+            //     for stmt in statements {
+            //         self.execute(stmt, &environment)?;
+            //     }
+            // }
+
+            Stmt::Block(statements) => self.execute_block(statements, &Environment::new_enclosed(environment)),
 
             Stmt::If(condition, then_branch) => {
                 let environment = self.env.clone();
@@ -83,6 +89,12 @@ impl Interpreter {
         }
 
         Ok(())
+    }
+
+    pub fn execute_block(&mut self, body: Vec<Stmt>, environment: &Environment) {
+        for stmt in body {
+            self.execute(stmt, environment);
+        }
     }
 
     fn output(value: Value) -> String {

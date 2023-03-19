@@ -21,35 +21,6 @@ impl Clone for Box<dyn Call> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Function {
-    arity: usize,
-}
-
-impl Call for Function {
-    fn arity(&self) -> usize {
-        self.arity
-    }
-
-    fn call(
-        &mut self,
-        interpreter: &mut Interpreter,
-        arguments: Vec<Value>,
-    ) -> Result<Value, LoxError> {
-        todo!()
-    }
-
-    fn box_clone(&self) -> Box<dyn Call> {
-        Box::new(self.clone())
-    }
-}
-
-impl Display for Function {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
-    }
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct Clock {
     arity: usize,
