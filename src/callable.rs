@@ -17,3 +17,32 @@ impl Clone for Box<dyn Call> {
         self.box_clone()
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct LoxFunction {
+    arity: usize
+}
+
+impl Call for LoxFunction {
+    fn arity(&self) -> usize {
+        self.arity()
+    }
+
+    fn call(
+        &mut self,
+        interpreter: &mut Interpreter,
+        arguments: Vec<Value>,
+    ) -> Result<Value, LoxError> {
+        todo!()
+    }
+
+    fn box_clone(&self) -> Box<dyn Call> {
+        Box::new(self.clone())
+    }
+}
+
+impl Display for LoxFunction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
+}
