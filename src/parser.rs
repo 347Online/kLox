@@ -364,7 +364,37 @@ impl Parser {
             return Ok(Expr::Unary(operator, Box::new(right)));
         }
 
-        self.primary()
+        self.call()
+    }
+
+    fn call(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.primary()?;
+
+        while let TokenType::LeftParen = self.peek().kind() {
+            expr = self.finish_call(expr)?;
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, LoxError> {
+        let mut arguments = vec![];
+
+        if !self.check(TokenType::RightParen) {
+            loop {
+                arguments.push(self.expression()?);
+
+                if let TokenType::Comma = self.peek().kind() {
+                    self.advance();
+                } else {
+                    break
+                }
+            }
+        }
+
+        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+
+        Ok(Expr::Call(Box::new(callee), paren, arguments))
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
