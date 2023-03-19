@@ -215,6 +215,7 @@ impl Interpreter {
                     )),
                 }
             }
+            Expr::Call(_, _, _) => todo!(),
         }
     }
 
