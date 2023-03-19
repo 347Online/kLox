@@ -1,8 +1,8 @@
 use crate::{
     expr::Expr,
-    lox::{Lox, LoxError},
+    lox::Lox,
     stmt::Stmt,
-    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value},
+    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value}, error::LoxError,
 };
 
 pub struct Parser {

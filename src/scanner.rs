@@ -1,6 +1,6 @@
 use crate::{
-    lox::{Lox, LoxError, LoxErrorKind},
-    token::*,
+    lox::Lox,
+    token::*, error::{LoxError, LoxErrorKind},
 };
 
 pub struct Scanner {

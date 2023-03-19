@@ -1,9 +1,9 @@
 use crate::{
     environment::Environment,
     expr::Expr,
-    lox::{Lox, LoxError},
+    lox::Lox,
     stmt::Stmt,
-    token::{BinOpType, LogOpType, UnOpType, Value},
+    token::{BinOpType, LogOpType, UnOpType, Value}, error::LoxError,
 };
 
 #[derive(Default)]

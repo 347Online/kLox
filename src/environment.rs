@@ -1,8 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    lox::{Lox, LoxError},
-    token::{Token, Value},
+    lox::Lox,
+    token::{Token, Value}, error::LoxError,
 };
 
 #[derive(Debug, Default)]
