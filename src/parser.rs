@@ -1,18 +1,24 @@
 use crate::{
+    error::LoxError,
     expr::Expr,
     lox::Lox,
     stmt::Stmt,
-    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value}, error::LoxError,
+    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value},
 };
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    eof: Token,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser {
+            tokens,
+            current: 0,
+            eof: Token::new(TokenType::Eof, "", Value::Nil, -1),
+        }
     }
 
     pub fn parse(&mut self) -> Vec<Stmt> {
@@ -404,7 +410,11 @@ impl Parser {
     }
 
     fn peek(&self) -> &Token {
-        &self.tokens[self.current]
+        if self.current >= self.tokens.len() {
+            &self.eof
+        } else {
+            &self.tokens[self.current]
+        }
     }
 
     fn previous(&self) -> Token {
