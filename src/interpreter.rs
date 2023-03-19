@@ -92,24 +92,24 @@ impl Interpreter {
     }
 
     fn evaluate(&mut self, expr: &Expr) -> Result<Value, LoxError> {
-        match expr {
-            Expr::Empty => Ok(Value::Nil),
+        let value = match expr {
+            Expr::Empty => Value::Nil,
 
-            Expr::Grouping(sub_expr) => self.evaluate(sub_expr),
+            Expr::Grouping(sub_expr) => self.evaluate(sub_expr)?,
 
-            Expr::Literal(value) => Ok(value.clone()),
+            Expr::Literal(value) => value.clone(),
 
             Expr::Unary(operator, right) => {
                 let op_type = operator.kind();
                 let right = self.evaluate(right)?;
 
                 match op_type {
-                    UnOpType::Not => Ok(Value::Bool(!Interpreter::is_truthy(&right))),
+                    UnOpType::Not => Value::Bool(!Interpreter::is_truthy(&right)),
                     UnOpType::Negative => {
                         if let Value::Number(value) = right {
-                            Ok(Value::Number(-value))
+                            Value::Number(-value)
                         } else {
-                            Err(Lox::runtime_error(
+                            return Err(Lox::runtime_error(
                                 &operator.token(),
                                 "Operand must be a number.",
                             ))
@@ -118,12 +118,12 @@ impl Interpreter {
                 }
             }
 
-            Expr::Variable(name) => Ok(self.env.get(name)?),
+            Expr::Variable(name) => self.env.get(name)?,
 
             Expr::Assign(name, expr) => {
                 let value = self.evaluate(expr)?;
                 self.env.assign(name, value.clone())?;
-                Ok(value)
+                value
             }
 
             Expr::Logical(operator, left, right) => {
@@ -133,16 +133,16 @@ impl Interpreter {
                 match op_type {
                     LogOpType::And => {
                         if Interpreter::is_truthy(&left) {
-                            Ok(self.evaluate(right)?)
+                            self.evaluate(right)?
                         } else {
-                            Ok(left)
+                            left
                         }
                     }
                     LogOpType::Or => {
                         if Interpreter::is_truthy(&left) {
-                            Ok(left)
+                            left
                         } else {
-                            Ok(self.evaluate(right)?)
+                            self.evaluate(right)?
                         }
                     }
                 }
@@ -156,46 +156,46 @@ impl Interpreter {
                 match (op_type, left, right) {
                     // Arithmetic
                     (BinOpType::Subtract, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left - right))
+                        Value::Number(left - right)
                     }
                     (BinOpType::Divide, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left / right))
+                        Value::Number(left / right)
                     }
                     (BinOpType::Multiply, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left * right))
+                        Value::Number(left * right)
                     }
                     (BinOpType::Add, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Number(left + right))
+                        Value::Number(left + right)
                     }
 
                     // String Concatenation
                     (BinOpType::Add, Value::String(left), Value::String(right)) => {
-                        Ok(Value::String(left + &right))
+                        Value::String(left + &right)
                     }
 
                     // Comparison
                     (BinOpType::Greater, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Bool(left > right))
+                        Value::Bool(left > right)
                     }
                     (BinOpType::GreaterEqual, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Bool(left >= right))
+                        Value::Bool(left >= right)
                     }
                     (BinOpType::Less, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Bool(left < right))
+                        Value::Bool(left < right)
                     }
                     (BinOpType::LessEqual, Value::Number(left), Value::Number(right)) => {
-                        Ok(Value::Bool(left <= right))
+                        Value::Bool(left <= right)
                     }
 
                     // Equality
                     (BinOpType::Equal, left, right) => {
-                        Ok(Value::Bool(Interpreter::is_equal(left, right)))
+                        Value::Bool(Interpreter::is_equal(left, right))
                     }
                     (BinOpType::NotEqual, left, right) => {
-                        Ok(Value::Bool(!Interpreter::is_equal(left, right)))
+                        Value::Bool(!Interpreter::is_equal(left, right))
                     }
 
-                    (BinOpType::Add, _, _) => Err(Lox::runtime_error(
+                    (BinOpType::Add, _, _) => return Err(Lox::runtime_error(
                         &operator.token(),
                         "Operands must be two numbers or two strings.",
                     )),
@@ -209,14 +209,16 @@ impl Interpreter {
                         | BinOpType::Multiply,
                         _,
                         _,
-                    ) => Err(Lox::runtime_error(
+                    ) => return Err(Lox::runtime_error(
                         &operator.token(),
                         "Operands must be numbers",
                     )),
                 }
             }
             Expr::Call(_, _, _) => todo!(),
-        }
+        };
+
+        Ok(value)
     }
 
     fn is_truthy(value: &Value) -> bool {
@@ -231,7 +233,9 @@ impl Interpreter {
         match (&left, &right) {
             (Value::Nil, Value::Nil) => true,
             (Value::Nil, _) => false,
-            _ => left == right,
+            (Value::Number(left_num), Value::Number(right_num)) => left_num == right_num,
+            (Value::String(left_str), Value::String(right_str)) => left_str == right_str,
+            _ => false,
         }
     }
 }
