@@ -19,11 +19,11 @@ impl Clone for Box<dyn Call> {
 }
 
 #[derive(Debug, Clone)]
-pub struct LoxFunction {
+pub struct Function {
     arity: usize
 }
 
-impl Call for LoxFunction {
+impl Call for Function {
     fn arity(&self) -> usize {
         self.arity()
     }
@@ -41,7 +41,7 @@ impl Call for LoxFunction {
     }
 }
 
-impl Display for LoxFunction {
+impl Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "")
     }
