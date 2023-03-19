@@ -382,6 +382,10 @@ impl Parser {
 
         if !self.check(TokenType::RightParen) {
             loop {
+                if arguments.len() >= Lox::MAX_ARGS {
+                    Lox::runtime_error(self.peek(), format!("Can't have more than {} arguments.", Lox::MAX_ARGS));
+                }
+
                 arguments.push(self.expression()?);
 
                 if let TokenType::Comma = self.peek().kind() {

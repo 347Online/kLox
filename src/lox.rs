@@ -14,6 +14,8 @@ use crate::{
 pub struct Lox;
 
 impl Lox {
+    pub const MAX_ARGS: usize = 255;
+
     pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
         let mut interpreter = Interpreter::new();
