@@ -2,8 +2,10 @@ use crate::{
     error::LoxError,
     expr::Expr,
     lox::Lox,
+    operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
-    token::{BinOp, BinOpType, LogOp, LogOpType, Token, TokenType, UnOp, UnOpType, Value},
+    token::{Token, TokenType},
+    value::Value,
 };
 
 pub struct Parser {
@@ -232,7 +234,7 @@ impl Parser {
             // we need to go into panic mode and synchronize."
             // May need to handle this differently
             Lox::syntax_error(&equals, "Invalid assignment target.");
-            return Ok(Expr::Empty)
+            return Ok(Expr::Empty);
         }
 
         Ok(expr)

@@ -1,89 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum BinOpType {
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    NotEqual,
-    Equal,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum UnOpType {
-    Not,
-    Negative,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum LogOpType {
-    And,
-    Or,
-}
-
-#[derive(Debug, Clone)]
-pub struct LogOp {
-    kind: LogOpType,
-    token: Token,
-}
-impl LogOp {
-    pub fn new(kind: LogOpType, token: Token) -> LogOp {
-        LogOp { kind, token }
-    }
-
-    pub fn kind(&self) -> LogOpType {
-        self.kind
-    }
-
-    pub fn token(&self) -> Token {
-        self.token.clone()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct BinOp {
-    kind: BinOpType,
-    token: Token,
-}
-
-impl BinOp {
-    pub fn new(kind: BinOpType, token: Token) -> Self {
-        BinOp { kind, token }
-    }
-
-    pub fn kind(&self) -> BinOpType {
-        self.kind
-    }
-
-    pub fn token(&self) -> Token {
-        self.token.clone()
-    }
-}
-
-impl UnOp {
-    pub fn new(kind: UnOpType, token: Token) -> Self {
-        UnOp { kind, token }
-    }
-
-    pub fn kind(&self) -> UnOpType {
-        self.kind
-    }
-
-    pub fn token(&self) -> Token {
-        self.token.clone()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct UnOp {
-    kind: UnOpType,
-    token: Token,
-}
+use crate::value::Value;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenType {
@@ -139,21 +56,6 @@ pub enum TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Value {
-    Bool(bool),
-    Identifier { name: String },
-    Number(f64),
-    String(String),
-    Nil,
-}
-
-impl Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
     }
 }
 

@@ -1,12 +1,14 @@
 pub mod environment;
-pub mod expr;
 pub mod error;
+pub mod expr;
 pub mod interpreter;
 pub mod lox;
+pub mod operator;
 pub mod parser;
 pub mod scanner;
 pub mod stmt;
 pub mod token;
+pub mod value;
 
 use lox::*;
 use std::env;

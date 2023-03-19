@@ -1,9 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{
-    lox::Lox,
-    token::{Token, Value}, error::LoxError,
-};
+use crate::{error::LoxError, lox::Lox, token::Token, value::Value};
 
 #[derive(Debug, Default)]
 pub struct EnvironmentData {

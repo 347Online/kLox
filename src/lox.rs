@@ -4,10 +4,11 @@ use std::{
 };
 
 use crate::{
+    error::{LoxError, LoxErrorKind},
     interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType}, error::{LoxErrorKind, LoxError},
+    token::{Token, TokenType},
 };
 
 pub struct Lox;
@@ -44,9 +45,7 @@ impl Lox {
     fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
-        let tokens = scanner.scan_tokens().unwrap_or_else(|_| {
-            vec![]
-        });
+        let tokens = scanner.scan_tokens().unwrap_or_else(|_| vec![]);
 
         let mut parser = Parser::new(tokens);
         let statements = parser.parse();

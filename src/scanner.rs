@@ -2,6 +2,7 @@ use crate::{
     error::{LoxError, LoxErrorKind},
     lox::Lox,
     token::*,
+    value::Value,
 };
 
 pub struct Scanner {
