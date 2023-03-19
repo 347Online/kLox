@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(Default)]
 pub struct Interpreter {
-    globals: Environment,
+    // globals: Environment,
     env: Environment,
 }
 
@@ -19,11 +19,8 @@ impl Interpreter {
         let globals = Environment::new();
         globals.define("clock", Clock::value());
 
-        let env = Environment::new_enclosed(&globals);
-
         Interpreter {
-            globals,
-            env
+            env: globals
         }
     }
 
