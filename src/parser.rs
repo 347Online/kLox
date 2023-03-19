@@ -67,7 +67,31 @@ impl Parser {
     }
 
     fn function<S: Into<String>>(&mut self, kind: S) -> Result<Stmt, LoxError> {
-        let name = self.consume(TokenType::Identifier, format!("Expect {} name.", kind.into()));
+        let kind = kind.into();
+        let name = self.consume(TokenType::Identifier, format!("Expect {} name.", kind))?;
+        let mut parameters = vec![];
+        if !self.check(TokenType::RightParen) {
+            loop {
+                if parameters.len() >= Lox::MAX_ARGS {
+                    Lox::runtime_error(self.peek(), format!("Can't have more than {} parameters.", Lox::MAX_ARGS));
+                }
+
+                parameters.push(self.consume(TokenType::Identifier, "Expect parameter name.")?);
+
+                if let TokenType::Comma = self.peek().kind() {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+
+        }
+        
+        self.consume(TokenType::RightParen, "Expect ')' after parameters")?;
+        self.consume(TokenType::LeftBrace, format!("Expect '{{' before {} body", kind))?;
+
+        let body = self.block()?;
+        Ok(Stmt::Function(name, parameters, body))
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
