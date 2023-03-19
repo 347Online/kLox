@@ -88,7 +88,7 @@ impl Interpreter {
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
             Value::Identifier { name: _ } => todo!("pull value for identifier"),
-            Value::Callable(callable) => {callable.to_string()}
+            Value::Callable(callable) => callable.to_string(),
         }
     }
 
@@ -113,7 +113,7 @@ impl Interpreter {
                             return Err(Lox::runtime_error(
                                 &operator.token(),
                                 "Operand must be a number.",
-                            ))
+                            ));
                         }
                     }
                 }
@@ -196,10 +196,12 @@ impl Interpreter {
                         Value::Bool(!Interpreter::is_equal(left, right))
                     }
 
-                    (BinOpType::Add, _, _) => return Err(Lox::runtime_error(
-                        &operator.token(),
-                        "Operands must be two numbers or two strings.",
-                    )),
+                    (BinOpType::Add, _, _) => {
+                        return Err(Lox::runtime_error(
+                            &operator.token(),
+                            "Operands must be two numbers or two strings.",
+                        ))
+                    }
                     (
                         BinOpType::Greater
                         | BinOpType::GreaterEqual
@@ -210,10 +212,12 @@ impl Interpreter {
                         | BinOpType::Multiply,
                         _,
                         _,
-                    ) => return Err(Lox::runtime_error(
-                        &operator.token(),
-                        "Operands must be numbers",
-                    )),
+                    ) => {
+                        return Err(Lox::runtime_error(
+                            &operator.token(),
+                            "Operands must be numbers",
+                        ))
+                    }
                 }
             }
 
@@ -227,13 +231,23 @@ impl Interpreter {
 
                 if let Value::Callable(mut function) = callee {
                     if arguments.len() != function.arity() {
-                        return Err(Lox::runtime_error(paren, format!("Expected {} arguments but got {}.", function.arity(), arguments.len())));
+                        return Err(Lox::runtime_error(
+                            paren,
+                            format!(
+                                "Expected {} arguments but got {}.",
+                                function.arity(),
+                                arguments.len()
+                            ),
+                        ));
                     }
                     function.call(self, arguments)?
                 } else {
-                    return Err(Lox::runtime_error(paren, "Can only call functions and classes."))
+                    return Err(Lox::runtime_error(
+                        paren,
+                        "Can only call functions and classes.",
+                    ));
                 }
-            },
+            }
         };
 
         Ok(value)

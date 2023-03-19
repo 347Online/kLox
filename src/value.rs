@@ -9,7 +9,7 @@ pub enum Value {
     Number(f64),
     String(String),
     Nil,
-    Callable(Box<dyn Call>)
+    Callable(Box<dyn Call>),
 }
 
 impl Display for Value {
