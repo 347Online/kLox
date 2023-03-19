@@ -371,6 +371,7 @@ impl Parser {
         let mut expr = self.primary()?;
 
         while let TokenType::LeftParen = self.peek().kind() {
+            self.advance();
             expr = self.finish_call(expr)?;
         }
 

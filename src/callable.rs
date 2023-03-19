@@ -50,9 +50,21 @@ impl Display for Function {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Clock {
     arity: usize,
+}
+impl Clock {
+    pub fn new() -> Self {
+        Clock {
+            arity: 0
+        }
+    }
+
+    // TODO: Genericize this and apply to trait
+    pub fn value() -> Value {
+        Value::Callable(Box::new(Clock::new()))
+    }
 }
 
 impl Call for Clock {
@@ -64,7 +76,7 @@ impl Call for Clock {
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to get the system time")
-            .as_secs() as f64;
+            .as_millis() as f64 / 1000.0;
 
         Ok(Value::Number(time))
     }

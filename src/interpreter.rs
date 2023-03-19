@@ -5,7 +5,7 @@ use crate::{
     lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
-    value::Value,
+    value::Value, callable::Clock,
 };
 
 #[derive(Default)]
@@ -17,6 +17,8 @@ pub struct Interpreter {
 impl Interpreter {
     pub fn new() -> Self {
         let globals = Environment::new();
+        globals.define("clock", Clock::value());
+
         let env = Environment::new_enclosed(&globals);
 
         Interpreter {

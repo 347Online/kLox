@@ -36,8 +36,8 @@ impl Environment {
         }
     }
 
-    pub fn define(&self, name: String, value: Value) {
-        self.data.borrow_mut().values.insert(name, value);
+    pub fn define<S: Into<String>>(&self, name: S, value: Value) {
+        self.data.borrow_mut().values.insert(name.into(), value);
     }
 
     pub fn get(&self, name: &Token) -> Result<Value, LoxError> {
