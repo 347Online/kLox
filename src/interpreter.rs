@@ -88,6 +88,7 @@ impl Interpreter {
             Value::Bool(boolean) => boolean.to_string(),
             Value::String(string) => string,
             Value::Identifier { name: _ } => todo!("pull value for identifier"),
+            Value::Callable(callable) => {callable.to_string()}
         }
     }
 
