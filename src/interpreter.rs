@@ -52,13 +52,6 @@ impl Interpreter {
                 let value = self.evaluate(&initializer)?;
                 self.env.define(name.lexeme(), value);
             }
-            // Stmt::Block(statements) => {
-            //     let environment = Environment::new_enclosed(environment);
-
-            //     for stmt in statements {
-            //         self.execute(stmt, &environment)?;
-            //     }
-            // }
 
             Stmt::Block(statements) => self.execute_block(statements, &Environment::new_enclosed(environment)),
 
