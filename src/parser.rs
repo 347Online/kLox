@@ -54,7 +54,7 @@ impl Parser {
                 self.var_declaration()
             }
 
-            _ => self.statement()
+            _ => self.statement(),
         };
 
         match result {
@@ -73,7 +73,10 @@ impl Parser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if parameters.len() >= Lox::MAX_ARGS {
-                    Lox::runtime_error(self.peek(), format!("Can't have more than {} parameters.", Lox::MAX_ARGS));
+                    Lox::runtime_error(
+                        self.peek(),
+                        format!("Can't have more than {} parameters.", Lox::MAX_ARGS),
+                    );
                 }
 
                 parameters.push(self.consume(TokenType::Identifier, "Expect parameter name.")?);
@@ -84,11 +87,13 @@ impl Parser {
                     break;
                 }
             }
-
         }
-        
+
         self.consume(TokenType::RightParen, "Expect ')' after parameters")?;
-        self.consume(TokenType::LeftBrace, format!("Expect '{{' before {} body", kind))?;
+        self.consume(
+            TokenType::LeftBrace,
+            format!("Expect '{{' before {} body", kind),
+        )?;
 
         let body = self.block()?;
         Ok(Stmt::Function(name, parameters, body))

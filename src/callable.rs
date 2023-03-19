@@ -27,9 +27,7 @@ pub struct Clock {
 }
 impl Clock {
     pub fn new() -> Self {
-        Clock {
-            arity: 0
-        }
+        Clock { arity: 0 }
     }
 
     // TODO: Genericize this and apply to trait
@@ -47,7 +45,8 @@ impl Call for Clock {
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to get the system time")
-            .as_millis() as f64 / 1000.0;
+            .as_millis() as f64
+            / 1000.0;
 
         Ok(Value::Number(time))
     }

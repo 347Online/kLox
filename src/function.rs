@@ -1,6 +1,13 @@
 use std::fmt::Display;
 
-use crate::{stmt::Stmt, callable::Call, interpreter::Interpreter, value::Value, error::LoxError, environment::{self, Environment}};
+use crate::{
+    callable::Call,
+    environment::{self, Environment},
+    error::LoxError,
+    interpreter::Interpreter,
+    stmt::Stmt,
+    value::Value,
+};
 
 #[derive(Debug, Clone)]
 pub struct Function {
@@ -28,7 +35,7 @@ impl Call for Function {
         arguments: Vec<Value>,
     ) -> Result<Value, LoxError> {
         let environment = Environment::new_enclosed(&interpreter.env());
-        
+
         let Stmt::Function(ref name, ref params, ref body) = self.declaration else {
             unreachable!()
         };

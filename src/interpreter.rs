@@ -1,11 +1,12 @@
 use crate::{
-    environment::{Environment, self},
+    callable::Clock,
+    environment::{self, Environment},
     error::LoxError,
     expr::Expr,
     lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
-    value::Value, callable::Clock,
+    value::Value,
 };
 
 #[derive(Default)]
@@ -19,9 +20,7 @@ impl Interpreter {
         let globals = Environment::new();
         globals.define("clock", Clock::value());
 
-        Interpreter {
-            env: globals
-        }
+        Interpreter { env: globals }
     }
 
     pub fn env(&self) -> &Environment {
@@ -53,7 +52,9 @@ impl Interpreter {
                 self.env.define(name.lexeme(), value);
             }
 
-            Stmt::Block(statements) => self.execute_block(statements, &Environment::new_enclosed(environment)),
+            Stmt::Block(statements) => {
+                self.execute_block(statements, &Environment::new_enclosed(environment))
+            }
 
             Stmt::If(condition, then_branch) => {
                 let environment = self.env.clone();
