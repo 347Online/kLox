@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{error::LoxError, lox::Lox, token::Token, value::Value};
+use crate::{error::LoxError, token::Token, value::Value};
 
 #[derive(Debug, Default)]
 pub struct EnvironmentData {
@@ -51,7 +51,7 @@ impl Environment {
             return enclosing.get(name);
         }
 
-        Err(Lox::runtime_error(
+        Err(LoxError::runtime(
             name,
             format!("Undefined variable '{}'.", name.lexeme()),
         ))
@@ -71,7 +71,7 @@ impl Environment {
             return Ok(());
         }
 
-        Err(Lox::runtime_error(
+        Err(LoxError::runtime(
             name,
             format!("Undefined variable '{}'.", name.lexeme()),
         ))

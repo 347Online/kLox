@@ -1,7 +1,6 @@
 use crate::{
     error::LoxError,
     expr::Expr,
-    lox::Lox,
     operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
     token::{Token, TokenType},
@@ -233,7 +232,7 @@ impl Parser {
             // but we don’t throw it because the parser isn’t in a confused state where
             // we need to go into panic mode and synchronize."
             // May need to handle this differently
-            Lox::syntax_error(&equals, "Invalid assignment target.");
+            LoxError::syntax(&equals, "Invalid assignment target.");
             return Ok(Expr::Empty);
         }
 
@@ -382,7 +381,7 @@ impl Parser {
                 Expr::Grouping(Box::new(expr))
             }
 
-            _ => return Err(Lox::syntax_error(token, "Expect Expression")),
+            _ => return Err(LoxError::syntax(token, "Expect Expression")),
         };
 
         self.advance();
@@ -394,7 +393,7 @@ impl Parser {
             return Ok(self.advance());
         }
 
-        Err(Lox::syntax_error(self.peek(), message))
+        Err(LoxError::syntax(self.peek(), message))
     }
 
     fn check(&self, kind: TokenType) -> bool {

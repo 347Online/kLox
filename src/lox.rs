@@ -4,11 +4,9 @@ use std::{
 };
 
 use crate::{
-    error::{LoxError, LoxErrorKind},
     interpreter::Interpreter,
     parser::Parser,
     scanner::Scanner,
-    token::{Token, TokenType},
 };
 
 pub struct Lox;
@@ -51,34 +49,5 @@ impl Lox {
         let statements = parser.parse();
 
         interpreter.interpret(statements);
-    }
-
-    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
-        Lox::report(line, "", &message.into(), kind)
-    }
-
-    pub fn syntax_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        let at = if let TokenType::Eof = token.kind() {
-            " at end".to_string()
-        } else {
-            format!(" at '{}'", token.lexeme())
-        };
-
-        Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
-    }
-
-    pub fn runtime_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        LoxError::at(
-            token.line(),
-            "",
-            &message.into(),
-            LoxErrorKind::RuntimeError,
-        )
-    }
-
-    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
-        let error = LoxError::at(line, at, message, kind);
-        eprintln!("{}", error);
-        error
     }
 }

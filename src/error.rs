@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::token::{Token, TokenType};
+
 #[derive(Debug)]
 pub enum LoxErrorKind {
     SyntaxError,
@@ -18,6 +20,37 @@ pub struct LoxError {
     message: String,
     at: String,
     kind: LoxErrorKind,
+}
+
+impl LoxError {
+    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
+        LoxError::report(line, "", &message.into(), kind)
+    }
+
+    pub fn syntax<S: Into<String>>(token: &Token, message: S) -> LoxError {
+        let at = if let TokenType::Eof = token.kind() {
+            " at end".to_string()
+        } else {
+            format!(" at '{}'", token.lexeme())
+        };
+
+        LoxError::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
+    }
+
+    pub fn runtime<S: Into<String>>(token: &Token, message: S) -> LoxError {
+        LoxError::at(
+            token.line(),
+            "",
+            &message.into(),
+            LoxErrorKind::RuntimeError,
+        )
+    }
+
+    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
+        let error = LoxError::at(line, at, message, kind);
+        eprintln!("{}", error);
+        error
+    }
 }
 
 impl Display for LoxError {

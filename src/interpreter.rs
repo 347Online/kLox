@@ -2,7 +2,6 @@ use crate::{
     environment::Environment,
     error::LoxError,
     expr::Expr,
-    lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
     value::Value,
@@ -109,7 +108,7 @@ impl Interpreter {
                         if let Value::Number(value) = right {
                             Value::Number(-value)
                         } else {
-                            return Err(Lox::runtime_error(
+                            return Err(LoxError::runtime(
                                 &operator.token(),
                                 "Operand must be a number.",
                             ))
@@ -195,7 +194,7 @@ impl Interpreter {
                         Value::Bool(!Interpreter::is_equal(left, right))
                     }
 
-                    (BinOpType::Add, _, _) => return Err(Lox::runtime_error(
+                    (BinOpType::Add, _, _) => return Err(LoxError::runtime(
                         &operator.token(),
                         "Operands must be two numbers or two strings.",
                     )),
@@ -209,7 +208,7 @@ impl Interpreter {
                         | BinOpType::Multiply,
                         _,
                         _,
-                    ) => return Err(Lox::runtime_error(
+                    ) => return Err(LoxError::runtime(
                         &operator.token(),
                         "Operands must be numbers",
                     )),
