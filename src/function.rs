@@ -11,18 +11,19 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Function {
-    // declaration: Stmt,
     name: Token,
     params: Vec<Token>,
-    body: Vec<Stmt>
+    body: Vec<Stmt>,
+    closure: Environment,
 }
 
 impl Function {
-    pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
+    pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>, closure: Environment) -> Self {
         Function {
             name,
             params,
-            body
+            body,
+            closure
         }
     }
 }
