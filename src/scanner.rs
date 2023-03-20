@@ -97,9 +97,10 @@ impl Scanner {
 
         macro_rules! add_digits {
             () => {
-                while self.peek().is_some() && self.peek().unwrap().is_ascii_digit() {
-                    match self.advance() {
+                while let Some(c) = self.peek() {
+                    match c {
                         c if c.is_ascii_digit() => {
+                            self.advance();
                             number_string.push(c);
                             continue;
                         }
