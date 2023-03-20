@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     callable::Call,
-    environment::{self, Environment},
+    environment::Environment,
     error::LoxError,
     interpreter::Interpreter,
     stmt::Stmt,
@@ -43,11 +43,11 @@ impl Call for Function {
     ) -> Result<Value, LoxError> {
         let environment = Environment::new_enclosed(interpreter.env());
 
-        for i in 0..self.params.len() {
-            environment.define(self.params[i].lexeme(), arguments[i].clone())
+        for (param, arg) in self.params.iter().zip(arguments) {
+            environment.define(param.lexeme(), arg);
         }
 
-        interpreter.execute_block(self.body.clone(), &environment);
+        interpreter.execute_block(self.body.clone(), &environment)?;
 
         Ok(Value::Nil)
     }
