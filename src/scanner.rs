@@ -113,13 +113,13 @@ impl Scanner {
 
         add_digits!();
 
-        if self.peek().is_some()
-            && self.peek().unwrap() == '.'
-            && self.peek_next().is_some()
-            && self.peek_next().unwrap().is_ascii_digit()
-        {
-            number_string.push(self.advance());
-            add_digits!()
+        if self.peek().is_some() {
+            if let Some(c) = self.peek_next() {
+                if c.is_ascii_digit() {
+                    number_string.push(self.advance());
+                    add_digits!()
+                }
+            }
         }
 
         let value: f64 = number_string.parse().expect("This should always succeed, as we have rigorously checked for number characters before adding them to number_string");
