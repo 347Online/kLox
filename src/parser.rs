@@ -33,15 +33,6 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Stmt {
-        // let result = 'block: {
-        //     if let TokenType::Var = self.peek().kind() {
-        //         self.advance();
-        //         break 'block self.var_declaration();
-        //     }
-
-        //     self.statement()
-        // };
-
         let result = match self.peek().kind() {
             TokenType::Fun => {
                 self.advance();
