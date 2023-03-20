@@ -1,6 +1,7 @@
 use crate::{
-    lox::{Lox, LoxError, LoxErrorKind},
+    error::{LoxError, LoxErrorType},
     token::*,
+    value::Value,
 };
 
 pub struct Scanner {
@@ -63,19 +64,6 @@ impl Scanner {
         c
     }
 
-    fn advance_if(&mut self, c: char) -> bool {
-        if self.is_at_end() {
-            return false;
-        }
-
-        if self.source[self.current] != c {
-            return false;
-        }
-
-        self.current += 1;
-        true
-    }
-
     fn string(&mut self) -> Result<(), LoxError> {
         let mut string_value = String::new();
 
@@ -87,10 +75,10 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(Lox::error(
+            return Err(LoxError::error(
                 self.line,
                 "Unterminated string",
-                LoxErrorKind::SyntaxError,
+                LoxErrorType::SyntaxError,
             ));
         }
 
@@ -211,7 +199,8 @@ impl Scanner {
             '*' => TokenType::Star,
 
             '!' => {
-                if self.advance_if('=') {
+                if let Some('=') = self.peek() {
+                    self.advance();
                     TokenType::BangEqual
                 } else {
                     TokenType::Bang
@@ -219,7 +208,8 @@ impl Scanner {
             }
 
             '=' => {
-                if self.advance_if('=') {
+                if let Some('=') = self.peek() {
+                    self.advance();
                     TokenType::EqualEqual
                 } else {
                     TokenType::Equal
@@ -227,7 +217,8 @@ impl Scanner {
             }
 
             '<' => {
-                if self.advance_if('=') {
+                if let Some('=') = self.peek() {
+                    self.advance();
                     TokenType::LessEqual
                 } else {
                     TokenType::Less
@@ -235,7 +226,8 @@ impl Scanner {
             }
 
             '>' => {
-                if self.advance_if('=') {
+                if let Some('=') = self.peek() {
+                    self.advance();
                     TokenType::GreaterEqual
                 } else {
                     TokenType::Greater
@@ -243,7 +235,8 @@ impl Scanner {
             }
 
             '/' => {
-                if self.advance_if('/') {
+                if let Some('/') = self.peek() {
+                    self.advance();
                     // A comment goes until the end of line
                     let mut comment = String::new();
                     while self.peek() != Some('\n') && !self.is_at_end() {
@@ -279,10 +272,10 @@ impl Scanner {
             }
 
             _ => {
-                return Err(Lox::error(
+                return Err(LoxError::error(
                     line,
                     "Unexpected character",
-                    LoxErrorKind::SyntaxError,
+                    LoxErrorType::SyntaxError,
                 ))
             }
         };

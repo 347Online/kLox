@@ -1,64 +1,15 @@
 use std::{
-    fmt::Display,
     fs::read_to_string,
     io::{stdin, stdout, Write},
 };
 
-use crate::{
-    interpreter::{Interpreter},
-    parser::Parser,
-    scanner::Scanner,
-    token::{Token, TokenType},
-};
-
-#[derive(Debug)]
-pub enum LoxErrorKind {
-    SyntaxError,
-    RuntimeError,
-}
-
-impl Display for LoxErrorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-#[derive(Debug)]
-pub struct LoxError {
-    line: i32,
-    message: String,
-    at: String,
-    kind: LoxErrorKind,
-}
-
-impl Display for LoxError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "[line {}] {}{}: {}",
-            self.line, self.kind, self.at, self.message
-        )
-    }
-}
-
-impl LoxError {
-    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> Self {
-        LoxError::at(line, "", &message.into(), kind)
-    }
-
-    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> Self {
-        LoxError {
-            line,
-            message: message.into(),
-            at: at.into(),
-            kind,
-        }
-    }
-}
+use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 pub struct Lox;
 
 impl Lox {
+    pub const MAX_ARGS: usize = 255;
+
     pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
         let mut interpreter = Interpreter::new();
@@ -67,7 +18,7 @@ impl Lox {
 
     pub fn run_prompt() {
         println!("klox, yet another Lox implementation, Katie Janzen 2023");
-        
+
         let stdin = stdin();
         let mut stdout = stdout();
         let mut interpreter = Interpreter::new();
@@ -90,44 +41,11 @@ impl Lox {
     fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
-        let tokens = scanner.scan_tokens().unwrap_or_else(|e| {
-            println!("{e}");
-            vec![]
-        });
+        let tokens = scanner.scan_tokens().unwrap_or_else(|_| vec![]);
 
         let mut parser = Parser::new(tokens);
-        let statements = parser.parse().unwrap_or_else(|e| {
-            println!("{e}");
-            vec![]
-        });
+        let statements = parser.parse();
 
         interpreter.interpret(statements);
-    }
-
-    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
-        Lox::report(line, "", &message.into(), kind)
-    }
-
-    pub fn syntax_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        let at = if token.is(TokenType::Eof) {
-            " at end".to_string()
-        } else {
-            format!(" at '{}'", token.lexeme())
-        };
-
-        Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
-    }
-
-    pub fn runtime_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        LoxError::at(
-            token.line(),
-            "",
-            &message.into(),
-            LoxErrorKind::RuntimeError,
-        )
-    }
-
-    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
-        LoxError::at(line, at, message, kind)
     }
 }

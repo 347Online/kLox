@@ -1,0 +1,5 @@
+var count = 0;
+while (true) {
+  print count;
+  count = count + 1;
+}

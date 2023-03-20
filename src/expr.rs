@@ -1,17 +1,18 @@
-use crate::token::{BinOp, UnOp, Value};
+use crate::{
+    operator::{BinOp, LogOp, UnOp},
+    token::Token,
+    value::Value,
+};
 
 #[derive(Debug, Clone)]
 pub enum Expr {
-    Binary {
-        operator: BinOp,
-        left: Box<Expr>,
-        right: Box<Expr>,
-    },
+    Empty,
+    Binary(BinOp, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Value),
-    Unary {
-        operator: UnOp,
-        right: Box<Expr>,
-    },
-    Empty,
+    Unary(UnOp, Box<Expr>),
+    Variable(Token),
+    Assign(Token, Box<Expr>),
+    Logical(LogOp, Box<Expr>, Box<Expr>),
+    Call(Box<Expr>, Token, Vec<Expr>),
 }
