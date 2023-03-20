@@ -3,7 +3,7 @@ use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
 use crate::{
     callable::Call,
     environment::Environment,
-    error::LoxError,
+    error::{LoxError, LoxErrorType},
     interpreter::Interpreter,
     stmt::Stmt,
     value::Value, token::Token,
@@ -18,10 +18,6 @@ pub struct Function {
 }
 
 impl Function {
-    // pub fn new(declaration: Stmt) -> Self {
-    //     Function { declaration }
-    // }
-
     pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
         Function {
             name,
@@ -47,7 +43,18 @@ impl Call for Function {
             environment.define(param.lexeme(), arg);
         }
 
-        interpreter.execute_block(self.body.clone(), &environment)?;
+        let result = interpreter.execute_block(self.body.clone(), &environment);
+        
+        match result {
+            Ok(()) => (),
+            Err(error) => {
+                if let LoxErrorType::Return(value) = error.kind() {
+                    return Ok(value.clone());
+                }
+                
+                return Err(error);
+            }
+        }
 
         Ok(Value::Nil)
     }
