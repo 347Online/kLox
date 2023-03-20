@@ -12,7 +12,6 @@ use crate::{
 #[derive(Default)]
 pub struct Interpreter {
     env: Environment,
-    #[allow(unused)]
     globals: Environment,
 }
 
