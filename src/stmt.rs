@@ -11,4 +11,5 @@ pub enum Stmt {
     IfElse(Expr, Box<Stmt>, Box<Stmt>),
     While(Expr, Box<Stmt>),
     Function(Token, Vec<Token>, Vec<Stmt>),
+    Return(Token, Expr),
 }

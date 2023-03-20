@@ -120,6 +120,11 @@ impl Parser {
                 self.print_statement()
             }
 
+            TokenType::Return => {
+                self.advance();
+                self.return_statement()
+            }
+
             TokenType::While => {
                 self.advance();
                 self.while_statment()
@@ -132,6 +137,17 @@ impl Parser {
 
             _ => self.expression_statement(),
         }
+    }
+
+    fn return_statement(&mut self) -> Result<Stmt, LoxError> {
+        let keyword = self.previous();
+        let mut expr = Expr::Empty;
+        if !self.check(TokenType::Semicolon) {
+            expr = self.expression()?;
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after return value.")?;
+        Ok(Stmt::Return(keyword, expr))
     }
 
     fn for_statement(&mut self) -> Result<Stmt, LoxError> {
