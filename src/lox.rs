@@ -3,11 +3,7 @@ use std::{
     io::{stdin, stdout, Write},
 };
 
-use crate::{
-    interpreter::Interpreter,
-    parser::Parser,
-    scanner::Scanner,
-};
+use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 pub struct Lox;
 

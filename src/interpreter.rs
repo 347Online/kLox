@@ -111,7 +111,7 @@ impl Interpreter {
                             return Err(LoxError::runtime(
                                 &operator.token(),
                                 "Operand must be a number.",
-                            ))
+                            ));
                         }
                     }
                 }
@@ -194,10 +194,12 @@ impl Interpreter {
                         Value::Bool(!Interpreter::is_equal(left, right))
                     }
 
-                    (BinOpType::Add, _, _) => return Err(LoxError::runtime(
-                        &operator.token(),
-                        "Operands must be two numbers or two strings.",
-                    )),
+                    (BinOpType::Add, _, _) => {
+                        return Err(LoxError::runtime(
+                            &operator.token(),
+                            "Operands must be two numbers or two strings.",
+                        ))
+                    }
                     (
                         BinOpType::Greater
                         | BinOpType::GreaterEqual
@@ -208,10 +210,12 @@ impl Interpreter {
                         | BinOpType::Multiply,
                         _,
                         _,
-                    ) => return Err(LoxError::runtime(
-                        &operator.token(),
-                        "Operands must be numbers",
-                    )),
+                    ) => {
+                        return Err(LoxError::runtime(
+                            &operator.token(),
+                            "Operands must be numbers",
+                        ))
+                    }
                 }
             }
         };
