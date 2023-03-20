@@ -82,7 +82,9 @@ impl Interpreter {
 
             Stmt::Function(name, params, body) => {
                 let display_name = name.lexeme();
-                let function = Function::new(name, params, body);
+
+                //TODO: Investigate this further
+                let function = Function::new(name, params, body, Environment::new());
                 environment.define(display_name, function.value());
             }
 
