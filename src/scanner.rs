@@ -23,23 +23,19 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, LoxError> {
+    pub fn scan_tokens(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token()?;
+            let c = self.advance();
+
+            if self.create_token(c, self.line).is_err() {
+                break;
+            }
         }
 
-        self.tokens
-            .push(Token::new(TokenType::Eof, "", Value::Nil, self.line));
-        Ok(self.tokens.clone())
-    }
-
-    fn scan_token(&mut self) -> Result<Vec<Token>, LoxError> {
-        let c = self.advance();
-
-        self.create_token(c, self.line)?;
-
-        Ok(self.tokens.clone())
+        let token = Token::new(TokenType::Eof, "", Value::Nil, self.line);
+        self.tokens.push(token);
+        self.tokens.clone()
     }
 
     fn peek(&self) -> Option<char> {

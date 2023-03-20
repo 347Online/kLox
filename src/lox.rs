@@ -11,7 +11,7 @@ impl Lox {
     pub const MAX_ARGS: usize = 255;
 
     pub fn run_file(path: String) {
-        let code = match read_to_string(&path) { //.expect("Failed to read string from stdin");
+        let code = match read_to_string(&path) {
             Ok(code) => code,
             Err(error) => {
                 match error.kind() {
@@ -54,7 +54,7 @@ impl Lox {
     fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
-        let tokens = scanner.scan_tokens().unwrap_or_else(|_| vec![]);
+        let tokens = scanner.scan_tokens();
 
         let mut parser = Parser::new(tokens);
         let statements = parser.parse();
