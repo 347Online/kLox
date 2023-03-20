@@ -4,7 +4,6 @@ use crate::{
     error::LoxError,
     expr::Expr,
     function::{Function, Clock},
-    lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
     value::Value,
@@ -129,7 +128,7 @@ impl Interpreter {
                         if let Value::Number(value) = right {
                             Value::Number(-value)
                         } else {
-                            return Err(Lox::runtime_error(
+                            return Err(LoxError::runtime(
                                 &operator.token(),
                                 "Operand must be a number.",
                             ));
@@ -216,7 +215,7 @@ impl Interpreter {
                     }
 
                     (BinOpType::Add, _, _) => {
-                        return Err(Lox::runtime_error(
+                        return Err(LoxError::runtime(
                             &operator.token(),
                             "Operands must be two numbers or two strings.",
                         ))
@@ -232,39 +231,11 @@ impl Interpreter {
                         _,
                         _,
                     ) => {
-                        return Err(Lox::runtime_error(
+                        return Err(LoxError::runtime(
                             &operator.token(),
                             "Operands must be numbers",
                         ))
                     }
-                }
-            }
-
-            Expr::Call(callee, paren, args) => {
-                let callee = self.evaluate(callee, environment)?;
-
-                let mut arguments = vec![];
-                for arg in args {
-                    arguments.push(self.evaluate(arg, environment)?);
-                }
-
-                if let Value::Callable(mut function) = callee {
-                    if arguments.len() != function.arity() {
-                        return Err(Lox::runtime_error(
-                            paren,
-                            format!(
-                                "Expected {} arguments but got {}.",
-                                function.arity(),
-                                arguments.len()
-                            ),
-                        ));
-                    }
-                    function.call(self, arguments)?
-                } else {
-                    return Err(Lox::runtime_error(
-                        paren,
-                        "Can only call functions and classes.",
-                    ));
                 }
             }
         };

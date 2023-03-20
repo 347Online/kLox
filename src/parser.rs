@@ -1,11 +1,10 @@
 use crate::{
     error::LoxError,
     expr::Expr,
-    lox::Lox,
     operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
     token::{Token, TokenType},
-    value::Value,
+    value::Value, lox::Lox,
 };
 
 pub struct Parser {
@@ -75,7 +74,7 @@ impl Parser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if parameters.len() >= Lox::MAX_ARGS {
-                    Lox::runtime_error(
+                    LoxError::runtime(
                         self.peek(),
                         format!("Can't have more than {} parameters.", Lox::MAX_ARGS),
                     );
@@ -282,7 +281,7 @@ impl Parser {
             // but we don’t throw it because the parser isn’t in a confused state where
             // we need to go into panic mode and synchronize."
             // May need to handle this differently
-            Lox::syntax_error(&equals, "Invalid assignment target.");
+            LoxError::syntax(&equals, "Invalid assignment target.");
             return Ok(Expr::Empty);
         }
 
@@ -433,7 +432,7 @@ impl Parser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if arguments.len() >= Lox::MAX_ARGS {
-                    Lox::runtime_error(
+                    LoxError::runtime(
                         self.peek(),
                         format!("Can't have more than {} arguments.", Lox::MAX_ARGS),
                     );
@@ -469,7 +468,7 @@ impl Parser {
                 Expr::Grouping(Box::new(expr))
             }
 
-            _ => return Err(Lox::syntax_error(token, "Expect Expression")),
+            _ => return Err(LoxError::syntax(token, "Expect Expression")),
         };
 
         self.advance();
@@ -481,7 +480,7 @@ impl Parser {
             return Ok(self.advance());
         }
 
-        Err(Lox::syntax_error(self.peek(), message))
+        Err(LoxError::syntax(self.peek(), message))
     }
 
     fn check(&self, kind: TokenType) -> bool {
