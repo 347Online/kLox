@@ -12,6 +12,7 @@ use crate::{
 #[derive(Default)]
 pub struct Interpreter {
     env: Environment,
+    #[allow(unused)]
     globals: Environment,
 }
 
@@ -83,6 +84,11 @@ impl Interpreter {
                 let display_name = name.lexeme();
                 let function = Function::new(name, params, body);
                 environment.define(display_name, function.value());
+            }
+
+            Stmt::Return(keyword, expr) => {
+                let value = self.evaluate(&expr, environment)?;
+                return Err(LoxError::return_value(keyword, value))
             }
 
             Stmt::Empty => (),

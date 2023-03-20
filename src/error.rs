@@ -1,11 +1,12 @@
 use std::fmt::Display;
 
-use crate::token::{Token, TokenType};
+use crate::{token::{Token, TokenType}, value::Value};
 
 #[derive(Debug)]
 pub enum LoxErrorKind {
     SyntaxError,
     RuntimeError,
+    Return(Value)
 }
 
 impl Display for LoxErrorKind {
@@ -23,6 +24,12 @@ pub struct LoxError {
 }
 
 impl LoxError {
+    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
+        let error = LoxError::at(line, at, message, kind);
+        eprintln!("{}", error);
+        error
+    }
+
     pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
         LoxError::report(line, "", &message.into(), kind)
     }
@@ -46,10 +53,13 @@ impl LoxError {
         )
     }
 
-    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
-        let error = LoxError::at(line, at, message, kind);
-        eprintln!("{}", error);
-        error
+    pub fn return_value(token: Token, value: Value) -> LoxError {
+        LoxError {
+            line: token.line(),
+            kind: LoxErrorKind::Return(value.clone()),
+            message: format!("return {}", value),
+            at: String::new(),
+        }
     }
 }
 
