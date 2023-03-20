@@ -6,27 +6,34 @@ use crate::{
     error::LoxError,
     interpreter::Interpreter,
     stmt::Stmt,
-    value::Value,
+    value::Value, token::Token,
 };
 
 #[derive(Debug, Clone)]
 pub struct Function {
-    declaration: Stmt,
+    // declaration: Stmt,
+    name: Token,
+    params: Vec<Token>,
+    body: Vec<Stmt>
 }
 
 impl Function {
-    pub fn new(declaration: Stmt) -> Self {
-        Function { declaration }
+    // pub fn new(declaration: Stmt) -> Self {
+    //     Function { declaration }
+    // }
+
+    pub fn new(name: Token, params: Vec<Token>, body: Vec<Stmt>) -> Self {
+        Function {
+            name,
+            params,
+            body
+        }
     }
 }
 
 impl Call for Function {
     fn arity(&self) -> usize {
-        let Stmt::Function(_, ref params, _) = self.declaration else {
-            unreachable!();
-        };
-
-        params.len()
+        self.params.len()
     }
 
     fn call(
@@ -34,17 +41,13 @@ impl Call for Function {
         interpreter: &mut Interpreter,
         arguments: Vec<Value>,
     ) -> Result<Value, LoxError> {
-        let environment = Environment::new_enclosed(&interpreter.env());
+        let environment = Environment::new_enclosed(interpreter.env());
 
-        let Stmt::Function(ref name, ref params, ref body) = self.declaration else {
-            unreachable!()
-        };
-
-        for i in 0..params.len() {
-            environment.define(params[i].lexeme(), arguments[i].clone())
+        for i in 0..self.params.len() {
+            environment.define(self.params[i].lexeme(), arguments[i].clone())
         }
 
-        interpreter.execute_block(body.to_vec(), &environment);
+        interpreter.execute_block(self.body.clone(), &environment);
 
         Ok(Value::Nil)
     }
@@ -56,9 +59,6 @@ impl Call for Function {
 
 impl Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Stmt::Function(ref name, _, _) = self.declaration else {
-            unreachable!();  
-        };
-        write!(f, "<fn {}>", name.lexeme())
+        write!(f, "<fn {}>", self.name.lexeme())
     }
 }

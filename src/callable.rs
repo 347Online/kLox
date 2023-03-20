@@ -13,6 +13,9 @@ pub trait Call: Debug + Display {
         arguments: Vec<Value>,
     ) -> Result<Value, LoxError>;
     fn box_clone(&self) -> Box<dyn Call>;
+    fn value(&self) -> Value {
+        Value::Callable(self.box_clone())
+    }
 }
 
 impl Clone for Box<dyn Call> {
@@ -28,11 +31,6 @@ pub struct Clock {
 impl Clock {
     pub fn new() -> Self {
         Clock { arity: 0 }
-    }
-
-    // TODO: Genericize this and apply to trait
-    pub fn value() -> Value {
-        Value::Callable(Box::new(Clock::new()))
     }
 }
 

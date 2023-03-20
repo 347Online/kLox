@@ -1,8 +1,9 @@
 use crate::{
-    callable::Clock,
-    environment::{self, Environment},
+    callable::{Clock, Call},
+    environment::Environment,
     error::LoxError,
     expr::Expr,
+    function::Function,
     lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
@@ -11,16 +12,20 @@ use crate::{
 
 #[derive(Default)]
 pub struct Interpreter {
-    // globals: Environment,
     env: Environment,
+    globals: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         let globals = Environment::new();
-        globals.define("clock", Clock::value());
+        let environment = Environment::new_enclosed(&globals);
+        globals.define("clock", Clock::new().value());
 
-        Interpreter { env: globals }
+        Interpreter {
+            env: environment,
+            globals,
+        }
     }
 
     pub fn env(&self) -> &Environment {
@@ -53,7 +58,7 @@ impl Interpreter {
             }
 
             Stmt::Block(statements) => {
-                self.execute_block(statements, &Environment::new_enclosed(environment))
+                self.execute_block(statements, &Environment::new_enclosed(environment))?;
             }
 
             Stmt::If(condition, then_branch) => {
@@ -79,16 +84,24 @@ impl Interpreter {
                 }
             }
 
+            Stmt::Function(name, params, body) => {
+                let display_name = name.lexeme();
+                let function = Function::new(name, params, body);
+                self.env.define(display_name, function.value());
+            }
+
             Stmt::Empty => (),
         }
 
         Ok(())
     }
 
-    pub fn execute_block(&mut self, body: Vec<Stmt>, environment: &Environment) {
+    pub fn execute_block(&mut self, body: Vec<Stmt>, environment: &Environment) -> Result<(), LoxError> {
         for stmt in body {
-            self.execute(stmt, environment);
+            self.execute(stmt, environment)?;
         }
+
+        Ok(())
     }
 
     fn output(value: Value) -> String {
