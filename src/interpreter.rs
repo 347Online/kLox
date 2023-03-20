@@ -1,9 +1,9 @@
 use crate::{
-    callable::{Clock, Call},
+    callable::Call,
     environment::Environment,
     error::LoxError,
     expr::Expr,
-    function::Function,
+    function::{Function, Clock},
     lox::Lox,
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
