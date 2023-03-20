@@ -159,11 +159,12 @@ impl Scanner {
 
         let mut ident_string = String::from(first);
 
-        // TODO: Instead of unwrapping here should return a LoxError on failure
-        while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric()
-            || self.peek().unwrap() == '_'
-        {
-            ident_string.push(self.advance());
+        while let Some(c) = self.peek() {
+            if c == '_' || c.is_alphanumeric() {
+                ident_string.push(self.advance());
+            } else {
+                break;
+            }
         }
 
         let kind = keyword_filter(&ident_string);
