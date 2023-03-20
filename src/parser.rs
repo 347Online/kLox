@@ -284,10 +284,6 @@ impl Parser {
                 return Ok(Expr::Assign(name, Box::new(value)));
             }
 
-            // "We report an error if the left-hand side isn’t a valid assignment target,
-            // but we don’t throw it because the parser isn’t in a confused state where
-            // we need to go into panic mode and synchronize."
-            // May need to handle this differently
             LoxError::syntax(&equals, "Invalid assignment target.");
             return Ok(Expr::Empty);
         }
