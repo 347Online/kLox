@@ -238,6 +238,34 @@ impl Interpreter {
                     }
                 }
             }
+
+            Expr::Call(callee, paren, args) => {
+                let callee = self.evaluate(callee, environment)?;
+
+                let mut arguments = vec![];
+                for arg in args {
+                    arguments.push(self.evaluate(arg, environment)?);
+                }
+
+                if let Value::Callable(mut function) = callee {
+                    if arguments.len() != function.arity() {
+                        return Err(LoxError::runtime(
+                            paren,
+                            format!(
+                                "Expected {} arguments but got {}.",
+                                function.arity(),
+                                arguments.len()
+                            ),
+                        ));
+                    }
+                    function.call(self, arguments)?
+                } else {
+                    return Err(LoxError::runtime(
+                        paren,
+                        "Can only call functions and classes.",
+                    ));
+                }
+            }
         };
 
         Ok(value)
