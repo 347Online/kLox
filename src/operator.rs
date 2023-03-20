@@ -26,7 +26,7 @@ impl UnOp {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub enum BinOpType {
     Add,
     Subtract,

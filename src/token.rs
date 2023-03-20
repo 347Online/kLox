@@ -77,10 +77,6 @@ impl Token {
         }
     }
 
-    pub fn is(&self, kind: TokenType) -> bool {
-        self.kind == kind
-    }
-
     pub fn kind(&self) -> TokenType {
         self.kind
     }

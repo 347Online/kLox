@@ -3,17 +3,13 @@ use std::{
     io::{stdin, stdout, Write},
 };
 
-use crate::{
-    error::{LoxError, LoxErrorKind},
-    interpreter::Interpreter,
-    parser::Parser,
-    scanner::Scanner,
-    token::{Token, TokenType},
-};
+use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 pub struct Lox;
 
 impl Lox {
+    pub const MAX_ARGS: usize = 255;
+
     pub fn run_file(path: String) {
         let code = read_to_string(path).unwrap();
         let mut interpreter = Interpreter::new();
@@ -51,34 +47,5 @@ impl Lox {
         let statements = parser.parse();
 
         interpreter.interpret(statements);
-    }
-
-    pub fn error<S: Into<String>>(line: i32, message: S, kind: LoxErrorKind) -> LoxError {
-        Lox::report(line, "", &message.into(), kind)
-    }
-
-    pub fn syntax_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        let at = if token.is(TokenType::Eof) {
-            " at end".to_string()
-        } else {
-            format!(" at '{}'", token.lexeme())
-        };
-
-        Lox::report(token.line(), at, message.into(), LoxErrorKind::SyntaxError)
-    }
-
-    pub fn runtime_error<S: Into<String>>(token: &Token, message: S) -> LoxError {
-        LoxError::at(
-            token.line(),
-            "",
-            &message.into(),
-            LoxErrorKind::RuntimeError,
-        )
-    }
-
-    fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorKind) -> LoxError {
-        let error = LoxError::at(line, at, message, kind);
-        eprintln!("{}", error);
-        error
     }
 }

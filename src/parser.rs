@@ -1,11 +1,10 @@
 use crate::{
     error::LoxError,
     expr::Expr,
-    lox::Lox,
     operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
     token::{Token, TokenType},
-    value::Value,
+    value::Value, lox::Lox,
 };
 
 pub struct Parser {
@@ -34,13 +33,18 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Stmt {
-        let result = 'block: {
-            if let TokenType::Var = self.peek().kind() {
+        let result = match self.peek().kind() {
+            TokenType::Fun => {
                 self.advance();
-                break 'block self.var_declaration();
+                self.function("function")
             }
 
-            self.statement()
+            TokenType::Var => {
+                self.advance();
+                self.var_declaration()
+            }
+
+            _ => self.statement(),
         };
 
         match result {
@@ -50,6 +54,41 @@ impl Parser {
                 Stmt::Empty
             }
         }
+    }
+
+    fn function<S: Into<String>>(&mut self, kind: S) -> Result<Stmt, LoxError> {
+        let kind = kind.into();
+        let name = self.consume(TokenType::Identifier, format!("Expect {} name.", kind))?;
+        
+        self.consume(TokenType::LeftParen, format!("Expect '(' after {} name.", kind))?;
+        let mut parameters = vec![];
+        if !self.check(TokenType::RightParen) {
+            loop {
+                if parameters.len() >= Lox::MAX_ARGS {
+                    LoxError::runtime(
+                        self.peek(),
+                        format!("Can't have more than {} parameters.", Lox::MAX_ARGS),
+                    );
+                }
+
+                parameters.push(self.consume(TokenType::Identifier, "Expect parameter name.")?);
+
+                if let TokenType::Comma = self.peek().kind() {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        self.consume(TokenType::RightParen, "Expect ')' after parameters")?;
+        self.consume(
+            TokenType::LeftBrace,
+            format!("Expect '{{' before {} body", kind),
+        )?;
+
+        let body = self.block()?;
+        Ok(Stmt::Function(name, parameters, body))
     }
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
@@ -71,6 +110,11 @@ impl Parser {
                 self.print_statement()
             }
 
+            TokenType::Return => {
+                self.advance();
+                self.return_statement()
+            }
+
             TokenType::While => {
                 self.advance();
                 self.while_statment()
@@ -83,6 +127,17 @@ impl Parser {
 
             _ => self.expression_statement(),
         }
+    }
+
+    fn return_statement(&mut self) -> Result<Stmt, LoxError> {
+        let keyword = self.previous();
+        let mut expr = Expr::Empty;
+        if !self.check(TokenType::Semicolon) {
+            expr = self.expression()?;
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after return value.")?;
+        Ok(Stmt::Return(keyword, expr))
     }
 
     fn for_statement(&mut self) -> Result<Stmt, LoxError> {
@@ -229,11 +284,7 @@ impl Parser {
                 return Ok(Expr::Assign(name, Box::new(value)));
             }
 
-            // "We report an error if the left-hand side isn’t a valid assignment target,
-            // but we don’t throw it because the parser isn’t in a confused state where
-            // we need to go into panic mode and synchronize."
-            // May need to handle this differently
-            Lox::syntax_error(&equals, "Invalid assignment target.");
+            LoxError::syntax(&equals, "Invalid assignment target.");
             return Ok(Expr::Empty);
         }
 
@@ -364,7 +415,45 @@ impl Parser {
             return Ok(Expr::Unary(operator, Box::new(right)));
         }
 
-        self.primary()
+        self.call()
+    }
+
+    fn call(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.primary()?;
+
+        while let TokenType::LeftParen = self.peek().kind() {
+            self.advance();
+            expr = self.finish_call(expr)?;
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, LoxError> {
+        let mut arguments = vec![];
+
+        if !self.check(TokenType::RightParen) {
+            loop {
+                if arguments.len() >= Lox::MAX_ARGS {
+                    LoxError::runtime(
+                        self.peek(),
+                        format!("Can't have more than {} arguments.", Lox::MAX_ARGS),
+                    );
+                }
+
+                arguments.push(self.expression()?);
+
+                if let TokenType::Comma = self.peek().kind() {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+
+        Ok(Expr::Call(Box::new(callee), paren, arguments))
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
@@ -382,7 +471,7 @@ impl Parser {
                 Expr::Grouping(Box::new(expr))
             }
 
-            _ => return Err(Lox::syntax_error(token, "Expect Expression")),
+            _ => return Err(LoxError::syntax(token, "Expect Expression")),
         };
 
         self.advance();
@@ -394,11 +483,11 @@ impl Parser {
             return Ok(self.advance());
         }
 
-        Err(Lox::syntax_error(self.peek(), message))
+        Err(LoxError::syntax(self.peek(), message))
     }
 
     fn check(&self, kind: TokenType) -> bool {
-        !self.is_at_end() && self.peek().is(kind)
+        !self.is_at_end() && self.peek().kind() == kind
     }
 
     fn advance(&mut self) -> Token {
@@ -409,7 +498,7 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        self.peek().is(TokenType::Eof)
+        matches!(self.peek().kind(), TokenType::Eof)
     }
 
     fn peek(&self) -> &Token {
@@ -428,7 +517,7 @@ impl Parser {
         self.advance();
 
         while !self.is_at_end() {
-            if self.previous().is(TokenType::Semicolon) {
+            if let TokenType::Semicolon = self.previous().kind() {
                 return;
             }
 

@@ -1,6 +1,5 @@
 use crate::{
-    error::{LoxError, LoxErrorKind},
-    lox::Lox,
+    error::{LoxError, LoxErrorType},
     token::*,
     value::Value,
 };
@@ -76,10 +75,10 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(Lox::error(
+            return Err(LoxError::error(
                 self.line,
                 "Unterminated string",
-                LoxErrorKind::SyntaxError,
+                LoxErrorType::SyntaxError,
             ));
         }
 
@@ -273,10 +272,10 @@ impl Scanner {
             }
 
             _ => {
-                return Err(Lox::error(
+                return Err(LoxError::error(
                     line,
                     "Unexpected character",
-                    LoxErrorKind::SyntaxError,
+                    LoxErrorType::SyntaxError,
                 ))
             }
         };
