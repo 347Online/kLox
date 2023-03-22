@@ -61,9 +61,7 @@ impl LoxError {
     }
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> LoxError {
-        let error = LoxError::at(line, at, message, kind);
-        eprintln!("{}", error);
-        error
+        LoxError::at(line, at, message, kind)
     }
 }
 
@@ -83,11 +81,13 @@ impl LoxError {
     }
 
     pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> Self {
-        LoxError {
+        let error = LoxError {
             line,
             message: message.into(),
             at: at.into(),
             kind,
-        }
+        };
+        eprintln!("{error}");
+        error
     }
 }
