@@ -1,5 +1,4 @@
 use crate::{
-    callable::Call,
     environment::Environment,
     error::LoxError,
     expr::Expr,

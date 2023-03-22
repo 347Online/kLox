@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::callable::Call;
+use crate::callable::Callable;
 
 #[derive(Clone, Debug)]
 pub enum Value {
@@ -9,7 +9,7 @@ pub enum Value {
     Number(f64),
     String(String),
     Nil,
-    Callable(Box<dyn Call>),
+    Callable(Box<Callable>),
 }
 
 impl Display for Value {

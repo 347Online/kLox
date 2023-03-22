@@ -4,13 +4,12 @@ use std::{
 };
 
 use crate::{
-    callable::Call,
     environment::Environment,
     error::{LoxError, LoxErrorType},
     interpreter::Interpreter,
     stmt::Stmt,
     token::Token,
-    value::Value,
+    value::Value, callable::Callable,
 };
 
 #[derive(Debug, Clone)]
@@ -30,14 +29,12 @@ impl Function {
             closure,
         }
     }
-}
 
-impl Call for Function {
-    fn arity(&self) -> usize {
+    pub fn arity(&self) -> usize {
         self.params.len()
     }
 
-    fn call(
+    pub fn call(
         &mut self,
         interpreter: &mut Interpreter,
         arguments: Vec<Value>,
@@ -64,8 +61,8 @@ impl Call for Function {
         Ok(Value::Nil)
     }
 
-    fn box_clone(&self) -> Box<dyn Call> {
-        Box::new(self.clone())
+    pub fn value(self) -> Value {
+        Value::Callable(Box::new(Callable::Function(self)))
     }
 }
 
@@ -76,17 +73,14 @@ impl Display for Function {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Clock {
-    arity: usize,
-}
+pub struct Clock;
+
 impl Clock {
     pub fn new() -> Self {
-        Clock { arity: 0 }
+        Clock
     }
-}
 
-impl Call for Clock {
-    fn call(
+    pub fn call(
         &mut self,
         _interpreter: &mut Interpreter,
         _arguments: Vec<Value>,
@@ -100,12 +94,8 @@ impl Call for Clock {
         Ok(Value::Number(time))
     }
 
-    fn arity(&self) -> usize {
-        self.arity
-    }
-
-    fn box_clone(&self) -> Box<dyn Call> {
-        Box::new(self.clone())
+    pub fn value(self) -> Value {
+        Value::Callable(Box::new(Callable::Clock(self)))
     }
 }
 
