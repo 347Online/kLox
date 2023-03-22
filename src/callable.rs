@@ -1,6 +1,4 @@
-use std::{
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 use crate::{error::LoxError, interpreter::Interpreter, value::Value};
 

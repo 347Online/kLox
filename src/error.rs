@@ -1,12 +1,15 @@
 use std::fmt::Display;
 
-use crate::{token::{Token, TokenType}, value::Value};
+use crate::{
+    token::{Token, TokenType},
+    value::Value,
+};
 
 #[derive(Debug)]
 pub enum LoxErrorType {
     SyntaxError,
     RuntimeError,
-    Return(Value)
+    Return(Value),
 }
 
 impl Display for LoxErrorType {

@@ -1,10 +1,11 @@
 use crate::{
     error::LoxError,
     expr::Expr,
+    lox::Lox,
     operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
     token::{Token, TokenType},
-    value::Value, lox::Lox,
+    value::Value,
 };
 
 pub struct Parser {
@@ -59,8 +60,11 @@ impl Parser {
     fn function<S: Into<String>>(&mut self, kind: S) -> Result<Stmt, LoxError> {
         let kind = kind.into();
         let name = self.consume(TokenType::Identifier, format!("Expect {} name.", kind))?;
-        
-        self.consume(TokenType::LeftParen, format!("Expect '(' after {} name.", kind))?;
+
+        self.consume(
+            TokenType::LeftParen,
+            format!("Expect '(' after {} name.", kind),
+        )?;
         let mut parameters = vec![];
         if !self.check(TokenType::RightParen) {
             loop {

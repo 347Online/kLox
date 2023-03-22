@@ -1,4 +1,7 @@
-use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    fmt::Display,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use crate::{
     callable::Call,
@@ -6,7 +9,8 @@ use crate::{
     error::{LoxError, LoxErrorType},
     interpreter::Interpreter,
     stmt::Stmt,
-    value::Value, token::Token,
+    token::Token,
+    value::Value,
 };
 
 #[derive(Debug, Clone)]
@@ -23,7 +27,7 @@ impl Function {
             name,
             params,
             body,
-            closure
+            closure,
         }
     }
 }
@@ -45,14 +49,14 @@ impl Call for Function {
         }
 
         let result = interpreter.execute_block(self.body.clone(), &environment);
-        
+
         match result {
             Ok(()) => (),
             Err(error) => {
                 if let LoxErrorType::Return(value) = error.kind() {
                     return Ok(value.clone());
                 }
-                
+
                 return Err(error);
             }
         }

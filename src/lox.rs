@@ -1,6 +1,6 @@
 use std::{
     fs::read_to_string,
-    io::{stdin, stdout, Write, ErrorKind},
+    io::{stdin, stdout, ErrorKind, Write},
 };
 
 use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
@@ -13,16 +13,14 @@ impl Lox {
     pub fn run_file(path: String) {
         let code = match read_to_string(&path) {
             Ok(code) => code,
-            Err(error) => {
-                match error.kind() {
-                    ErrorKind::NotFound => {
-                        eprintln!("File '{}' not found", path);
-                        String::new()
-                    },
-
-                    _ => panic!("An error occurred: {}", error)
+            Err(error) => match error.kind() {
+                ErrorKind::NotFound => {
+                    eprintln!("File '{}' not found", path);
+                    String::new()
                 }
-            }
+
+                _ => panic!("An error occurred: {}", error),
+            },
         };
 
         let mut interpreter = Interpreter::new();
