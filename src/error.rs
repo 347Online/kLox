@@ -27,6 +27,21 @@ pub struct LoxError {
 }
 
 impl LoxError {
+    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorType) -> Self {
+        LoxError::at(line, "", &message.into(), kind)
+    }
+
+    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> Self {
+        let error = LoxError {
+            line,
+            message: message.into(),
+            at: at.into(),
+            kind,
+        };
+        eprintln!("{error}");
+        error
+    }
+
     pub fn kind(&self) -> &LoxErrorType {
         &self.kind
     }
@@ -75,22 +90,5 @@ impl Display for LoxError {
             "[line {}] {}{}: {}",
             self.line, self.kind, self.at, self.message
         )
-    }
-}
-
-impl LoxError {
-    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorType) -> Self {
-        LoxError::at(line, "", &message.into(), kind)
-    }
-
-    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> Self {
-        let error = LoxError {
-            line,
-            message: message.into(),
-            at: at.into(),
-            kind,
-        };
-        eprintln!("{error}");
-        error
     }
 }
