@@ -4,12 +4,13 @@ use std::{
 };
 
 use crate::{
+    callable::Callable,
     environment::Environment,
     error::{LoxError, LoxErrorType},
     interpreter::Interpreter,
     stmt::Stmt,
     token::Token,
-    value::Value, callable::Callable,
+    value::Value,
 };
 
 #[derive(Debug, Clone)]
