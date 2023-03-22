@@ -1,12 +1,16 @@
-use std::{fmt::Display, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    fmt::Display,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use crate::{
-    callable::Call,
+    callable::Callable,
     environment::Environment,
     error::{LoxError, LoxErrorType},
     interpreter::Interpreter,
     stmt::Stmt,
-    value::Value, token::Token,
+    token::Token,
+    value::Value,
 };
 
 #[derive(Debug, Clone)]
@@ -23,17 +27,15 @@ impl Function {
             name,
             params,
             body,
-            closure
+            closure,
         }
     }
-}
 
-impl Call for Function {
-    fn arity(&self) -> usize {
+    pub fn arity(&self) -> usize {
         self.params.len()
     }
 
-    fn call(
+    pub fn call(
         &mut self,
         interpreter: &mut Interpreter,
         arguments: Vec<Value>,
@@ -45,14 +47,14 @@ impl Call for Function {
         }
 
         let result = interpreter.execute_block(self.body.clone(), &environment);
-        
+
         match result {
             Ok(()) => (),
             Err(error) => {
                 if let LoxErrorType::Return(value) = error.kind() {
                     return Ok(value.clone());
                 }
-                
+
                 return Err(error);
             }
         }
@@ -60,8 +62,8 @@ impl Call for Function {
         Ok(Value::Nil)
     }
 
-    fn box_clone(&self) -> Box<dyn Call> {
-        Box::new(self.clone())
+    pub fn value(self) -> Value {
+        Value::Callable(Box::new(Callable::Function(self)))
     }
 }
 
@@ -72,17 +74,14 @@ impl Display for Function {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Clock {
-    arity: usize,
-}
+pub struct Clock;
+
 impl Clock {
     pub fn new() -> Self {
-        Clock { arity: 0 }
+        Clock
     }
-}
 
-impl Call for Clock {
-    fn call(
+    pub fn call(
         &mut self,
         _interpreter: &mut Interpreter,
         _arguments: Vec<Value>,
@@ -96,12 +95,8 @@ impl Call for Clock {
         Ok(Value::Number(time))
     }
 
-    fn arity(&self) -> usize {
-        self.arity
-    }
-
-    fn box_clone(&self) -> Box<dyn Call> {
-        Box::new(self.clone())
+    pub fn value(self) -> Value {
+        Value::Callable(Box::new(Callable::Clock(self)))
     }
 }
 

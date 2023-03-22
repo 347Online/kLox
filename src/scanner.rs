@@ -23,23 +23,19 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, LoxError> {
+    pub fn scan_tokens(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token()?;
+            let c = self.advance();
+
+            if self.create_token(c, self.line).is_err() {
+                break;
+            }
         }
 
-        self.tokens
-            .push(Token::new(TokenType::Eof, "", Value::Nil, self.line));
-        Ok(self.tokens.clone())
-    }
-
-    fn scan_token(&mut self) -> Result<Vec<Token>, LoxError> {
-        let c = self.advance();
-
-        self.create_token(c, self.line)?;
-
-        Ok(self.tokens.clone())
+        let token = Token::new(TokenType::Eof, "", Value::Nil, self.line);
+        self.tokens.push(token);
+        self.tokens.clone()
     }
 
     fn peek(&self) -> Option<char> {
@@ -101,9 +97,10 @@ impl Scanner {
 
         macro_rules! add_digits {
             () => {
-                while self.peek().is_some() && self.peek().unwrap().is_ascii_digit() {
-                    match self.advance() {
+                while let Some(c) = self.peek() {
+                    match c {
                         c if c.is_ascii_digit() => {
+                            self.advance();
                             number_string.push(c);
                             continue;
                         }
@@ -116,13 +113,13 @@ impl Scanner {
 
         add_digits!();
 
-        if self.peek().is_some()
-            && self.peek().unwrap() == '.'
-            && self.peek_next().is_some()
-            && self.peek_next().unwrap().is_ascii_digit()
-        {
-            number_string.push(self.advance());
-            add_digits!()
+        if self.peek().is_some() {
+            if let Some(c) = self.peek_next() {
+                if c.is_ascii_digit() {
+                    number_string.push(self.advance());
+                    add_digits!()
+                }
+            }
         }
 
         let value: f64 = number_string.parse().expect("This should always succeed, as we have rigorously checked for number characters before adding them to number_string");
@@ -163,11 +160,12 @@ impl Scanner {
 
         let mut ident_string = String::from(first);
 
-        // TODO: Instead of unwrapping here should return a LoxError on failure
-        while self.peek().is_some() && self.peek().unwrap().is_ascii_alphanumeric()
-            || self.peek().unwrap() == '_'
-        {
-            ident_string.push(self.advance());
+        while let Some(c) = self.peek() {
+            if c == '_' || c.is_alphanumeric() {
+                ident_string.push(self.advance());
+            } else {
+                break;
+            }
         }
 
         let kind = keyword_filter(&ident_string);

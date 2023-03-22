@@ -1,9 +1,8 @@
 use crate::{
-    callable::Call,
     environment::Environment,
     error::LoxError,
     expr::Expr,
-    function::{Function, Clock},
+    function::{Clock, Function},
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
     value::Value,
@@ -12,7 +11,6 @@ use crate::{
 #[derive(Default)]
 pub struct Interpreter {
     env: Environment,
-    #[allow(unused)]
     globals: Environment,
 }
 
@@ -90,7 +88,7 @@ impl Interpreter {
 
             Stmt::Return(keyword, expr) => {
                 let value = self.evaluate(&expr, environment)?;
-                return Err(LoxError::return_value(keyword, value))
+                return Err(LoxError::return_value(keyword, value));
             }
 
             Stmt::Empty => (),
@@ -99,7 +97,11 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn execute_block(&mut self, body: Vec<Stmt>, environment: &Environment) -> Result<(), LoxError> {
+    pub fn execute_block(
+        &mut self,
+        body: Vec<Stmt>,
+        environment: &Environment,
+    ) -> Result<(), LoxError> {
         for stmt in body {
             self.execute(stmt, environment)?;
         }

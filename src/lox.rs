@@ -1,6 +1,6 @@
 use std::{
     fs::read_to_string,
-    io::{stdin, stdout, Write},
+    io::{stdin, stdout, ErrorKind, Write},
 };
 
 use crate::{interpreter::Interpreter, parser::Parser, scanner::Scanner};
@@ -11,7 +11,18 @@ impl Lox {
     pub const MAX_ARGS: usize = 255;
 
     pub fn run_file(path: String) {
-        let code = read_to_string(path).unwrap();
+        let code = match read_to_string(&path) {
+            Ok(code) => code,
+            Err(error) => match error.kind() {
+                ErrorKind::NotFound => {
+                    eprintln!("File '{}' not found", path);
+                    String::new()
+                }
+
+                _ => panic!("An error occurred: {}", error),
+            },
+        };
+
         let mut interpreter = Interpreter::new();
         Lox::run(code, &mut interpreter);
     }
@@ -25,7 +36,7 @@ impl Lox {
 
         loop {
             print!("> ");
-            stdout.flush().unwrap();
+            stdout.flush().expect("Failed to flush stdout");
 
             let mut line = String::new();
             stdin.read_line(&mut line).expect("Failed to read stdin");
@@ -41,7 +52,7 @@ impl Lox {
     fn run(source: String, interpreter: &mut Interpreter) {
         let mut scanner = Scanner::new(source);
 
-        let tokens = scanner.scan_tokens().unwrap_or_else(|_| vec![]);
+        let tokens = scanner.scan_tokens();
 
         let mut parser = Parser::new(tokens);
         let statements = parser.parse();

@@ -1,12 +1,15 @@
 use std::fmt::Display;
 
-use crate::{token::{Token, TokenType}, value::Value};
+use crate::{
+    token::{Token, TokenType},
+    value::Value,
+};
 
 #[derive(Debug)]
 pub enum LoxErrorType {
     SyntaxError,
     RuntimeError,
-    Return(Value)
+    Return(Value),
 }
 
 impl Display for LoxErrorType {
@@ -24,6 +27,21 @@ pub struct LoxError {
 }
 
 impl LoxError {
+    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorType) -> Self {
+        LoxError::at(line, "", &message.into(), kind)
+    }
+
+    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> Self {
+        let error = LoxError {
+            line,
+            message: message.into(),
+            at: at.into(),
+            kind,
+        };
+        eprintln!("{error}");
+        error
+    }
+
     pub fn kind(&self) -> &LoxErrorType {
         &self.kind
     }
@@ -61,9 +79,7 @@ impl LoxError {
     }
 
     fn report<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> LoxError {
-        let error = LoxError::at(line, at, message, kind);
-        eprintln!("{}", error);
-        error
+        LoxError::at(line, at, message, kind)
     }
 }
 
@@ -74,20 +90,5 @@ impl Display for LoxError {
             "[line {}] {}{}: {}",
             self.line, self.kind, self.at, self.message
         )
-    }
-}
-
-impl LoxError {
-    pub fn new<S: Into<String>>(line: i32, message: S, kind: LoxErrorType) -> Self {
-        LoxError::at(line, "", &message.into(), kind)
-    }
-
-    pub fn at<S: Into<String>>(line: i32, at: S, message: S, kind: LoxErrorType) -> Self {
-        LoxError {
-            line,
-            message: message.into(),
-            at: at.into(),
-            kind,
-        }
     }
 }
