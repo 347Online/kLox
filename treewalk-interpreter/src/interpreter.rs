@@ -1,7 +1,7 @@
 use crate::{
     environment::Environment,
     error::LoxError,
-    expr::Expr,
+    expr::{Expr, ExprType},
     function::{Clock, Function},
     operator::{BinOpType, LogOpType, UnOpType},
     stmt::Stmt,
@@ -121,14 +121,14 @@ impl Interpreter {
     }
 
     fn evaluate(&mut self, expr: &Expr, environment: &Environment) -> Result<Value, LoxError> {
-        let value = match expr {
-            Expr::Empty => Value::Nil,
+        let value = match expr.kind() {
+            ExprType::Empty => Value::Nil,
 
-            Expr::Grouping(sub_expr) => self.evaluate(sub_expr, environment)?,
+            ExprType::Grouping(sub_expr) => self.evaluate(sub_expr, environment)?,
 
-            Expr::Literal(value) => value.clone(),
+            ExprType::Literal(value) => value.clone(),
 
-            Expr::Unary(operator, right) => {
+            ExprType::Unary(operator, right) => {
                 let op_type = operator.kind();
                 let right = self.evaluate(right, environment)?;
 
@@ -147,15 +147,15 @@ impl Interpreter {
                 }
             }
 
-            Expr::Variable(name) => environment.get(name)?,
+            ExprType::Variable(name) => environment.get(name)?,
 
-            Expr::Assign(name, expr) => {
+            ExprType::Assign(name, expr) => {
                 let value = self.evaluate(expr, environment)?;
                 environment.assign(name, value.clone())?;
                 value
             }
 
-            Expr::Logical(operator, left, right) => {
+            ExprType::Logical(operator, left, right) => {
                 let op_type = operator.kind();
                 let left = self.evaluate(left, environment)?;
 
@@ -177,7 +177,7 @@ impl Interpreter {
                 }
             }
 
-            Expr::Binary(operator, left, right) => {
+            ExprType::Binary(operator, left, right) => {
                 let op_type = operator.kind();
                 let left = self.evaluate(left, environment)?;
                 let right = self.evaluate(right, environment)?;
@@ -249,7 +249,7 @@ impl Interpreter {
                 }
             }
 
-            Expr::Call(callee, paren, args) => {
+            ExprType::Call(callee, paren, args) => {
                 let callee = self.evaluate(callee, environment)?;
 
                 let mut arguments = vec![];

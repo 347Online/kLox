@@ -1,6 +1,6 @@
 use crate::{
     error::LoxError,
-    expr::Expr,
+    expr::{Expr, ExprType},
     lox::Lox,
     operator::{BinOp, BinOpType, LogOp, LogOpType, UnOp, UnOpType},
     stmt::Stmt,
@@ -135,7 +135,7 @@ impl Parser {
 
     fn return_statement(&mut self) -> Result<Stmt, LoxError> {
         let keyword = self.previous();
-        let mut expr = Expr::Empty;
+        let mut expr = Expr::new();
         if !self.check(TokenType::Semicolon) {
             expr = self.expression()?;
         }
@@ -164,7 +164,7 @@ impl Parser {
 
         // Condition
         let mut condition = if self.check(TokenType::Semicolon) {
-            Expr::Empty
+            Expr::new()
         } else {
             self.expression()?
         };
@@ -172,7 +172,7 @@ impl Parser {
 
         // Increment
         let increment = if self.check(TokenType::RightParen) {
-            Expr::Empty
+            Expr::new()
         } else {
             self.expression()?
         };
@@ -180,13 +180,13 @@ impl Parser {
 
         let mut body = self.statement()?;
 
-        if let Expr::Empty = increment {
+        if let ExprType::Empty = increment.kind() {
         } else {
             body = Stmt::Block(vec![body, Stmt::Expr(increment)]);
         }
 
-        if let Expr::Empty = condition {
-            condition = Expr::Literal(Value::Bool(true));
+        if let ExprType::Empty = condition.kind() {
+            condition = Expr::literal(Value::Bool(true));
         }
 
         body = Stmt::While(condition, Box::new(body));
@@ -249,7 +249,7 @@ impl Parser {
             self.advance();
             self.expression()?
         } else {
-            Expr::Empty
+            Expr::new()
         };
 
         self.consume(
@@ -284,12 +284,12 @@ impl Parser {
             let equals = self.previous();
             let value = self.assignment()?;
 
-            if let Expr::Variable(name) = expr {
-                return Ok(Expr::Assign(name, Box::new(value)));
+            if let ExprType::Variable(name) = expr.kind() {
+                return Ok(Expr::assign(name.clone(), value));
             }
 
             LoxError::syntax(&equals, "Invalid assignment target.");
-            return Ok(Expr::Empty);
+            return Ok(Expr::new());
         }
 
         Ok(expr)
@@ -303,7 +303,7 @@ impl Parser {
             let token = self.previous();
             let operator = LogOp::new(LogOpType::Or, token);
             let right = self.and()?;
-            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
+            expr = Expr::logical(operator, expr, right);
         }
 
         Ok(expr)
@@ -317,7 +317,7 @@ impl Parser {
             let token = self.previous();
             let operator = LogOp::new(LogOpType::And, token);
             let right = self.equality()?;
-            expr = Expr::Logical(operator, Box::new(expr), Box::new(right));
+            expr = Expr::logical(operator, expr, right);
         }
 
         Ok(expr)
@@ -336,7 +336,7 @@ impl Parser {
                 _ => unreachable!(),
             };
             let right = self.comparison()?;
-            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
+            expr = Expr::binary(operator, expr, right);
         }
 
         Ok(expr)
@@ -361,7 +361,7 @@ impl Parser {
                 _ => unreachable!(),
             };
             let right = self.term()?;
-            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
+            expr = Expr::binary(operator, expr, right);
         }
 
         Ok(expr)
@@ -380,7 +380,7 @@ impl Parser {
                 _ => unreachable!(),
             };
             let right = self.factor()?;
-            expr = Expr::Binary(operator, Box::new(expr), Box::new(right))
+            expr = Expr::binary(operator, expr, right);
         }
 
         Ok(expr)
@@ -399,7 +399,7 @@ impl Parser {
                 _ => unreachable!(),
             };
             let right = self.unary()?;
-            expr = Expr::Binary(operator, Box::new(expr), Box::new(right));
+            expr = Expr::binary(operator, expr, right);
         }
 
         Ok(expr)
@@ -416,7 +416,7 @@ impl Parser {
                 _ => unreachable!(),
             };
             let right = self.unary()?;
-            return Ok(Expr::Unary(operator, Box::new(right)));
+            return Ok(Expr::unary(operator, right));
         }
 
         self.call()
@@ -457,22 +457,22 @@ impl Parser {
 
         let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
 
-        Ok(Expr::Call(Box::new(callee), paren, arguments))
+        Ok(Expr::call(callee, paren, arguments))
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
         let token = self.peek();
 
         let expr = match token.kind() {
-            TokenType::False => Expr::Literal(Value::Bool(false)),
-            TokenType::True => Expr::Literal(Value::Bool(true)),
-            TokenType::Nil => Expr::Literal(Value::Nil),
-            TokenType::Number | TokenType::String => Expr::Literal(token.literal()),
-            TokenType::Identifier => Expr::Variable(token.clone()),
+            TokenType::False => Expr::literal(Value::Bool(false)),
+            TokenType::True => Expr::literal(Value::Bool(true)),
+            TokenType::Nil => Expr::literal(Value::Nil),
+            TokenType::Number | TokenType::String => Expr::literal(token.literal()),
+            TokenType::Identifier => Expr::variable(token.clone()),
             TokenType::LeftParen => {
                 let expr = self.expression()?;
                 self.consume(TokenType::RightParen, "Expect ')' after expression.")?;
-                Expr::Grouping(Box::new(expr))
+                Expr::grouping(expr)
             }
 
             _ => return Err(LoxError::syntax(token, "Expect Expression")),
