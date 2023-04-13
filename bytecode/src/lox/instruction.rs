@@ -33,9 +33,10 @@ impl Instruction {
         }
 
         use Instruction::*;
+        const WIDTH: usize = 16;
         let repr = match self {
             Return => simple("Return"),
-            Constant(index) => format!("Constant, Index: {:04}", index),
+            Constant(index) => format!("{:<WIDTH$} {:04} x", "Constant", index),
         };
 
         (repr, len)
