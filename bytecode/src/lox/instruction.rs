@@ -24,21 +24,4 @@ impl Instruction {
             Return => vec![code],
         }
     }
-
-    pub fn disassemble(&self) -> (String, usize) {
-        let len = self.as_bytes().len();
-
-        fn simple(name: &str) -> String {
-            name.to_string()
-        }
-
-        use Instruction::*;
-        const WIDTH: usize = 16;
-        let repr = match self {
-            Return => simple("Return"),
-            Constant(index) => format!("{:<WIDTH$} {:04} x", "Constant", index),
-        };
-
-        (repr, len)
-    }
 }
