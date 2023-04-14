@@ -1,6 +1,6 @@
 use crate::lox::instruction::Instruction;
 
-use super::{error::LoxError, chunk::Chunk, value::Value, compiler::compile};
+use super::{chunk::Chunk, compiler::compile, error::LoxError, value::Value};
 
 pub type InterpretResult = Result<(), LoxError>;
 
@@ -13,7 +13,6 @@ pub struct VirtualMachine {
 }
 
 impl VirtualMachine {
-
     pub fn new() -> Self {
         VirtualMachine {
             chunk: None,
@@ -21,7 +20,7 @@ impl VirtualMachine {
             stack_ptr: 0,
         }
     }
-    
+
     pub fn interpret(&mut self, source: String) -> InterpretResult {
         compile(source);
         Ok(())
@@ -51,18 +50,17 @@ impl VirtualMachine {
 
     fn run(&mut self) -> InterpretResult {
         let chunk = self.chunk.take().unwrap();
-        
+
         #[cfg(debug_assertions)]
         println!("{}", chunk.disassemble());
 
         use Instruction::*;
         for instruction in chunk.instructions() {
-
             match instruction {
                 Constant(index) => {
                     let constant = chunk.read_constant(*index as usize);
                     self.push(constant);
-                },
+                }
 
                 Add => self.binary(|x, y| x + y),
                 Subtract => self.binary(|x, y| x - y),
@@ -77,8 +75,8 @@ impl VirtualMachine {
                 Return => {
                     let value = self.pop();
                     println!("{}", value);
-                    return Ok(())
-                },
+                    return Ok(());
+                }
             }
         }
 

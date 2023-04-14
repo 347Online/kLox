@@ -2,14 +2,14 @@
 #[repr(u8)]
 pub enum Instruction {
     Constant(u8),
-    
+
     Add,
     Subtract,
     Multiply,
     Divide,
-    
+
     Negate,
-    
+
     Return,
 }
 

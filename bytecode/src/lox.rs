@@ -1,13 +1,17 @@
-use std::{io::{stdin, stdout, Write, ErrorKind}, path::Path, fs::read_to_string};
+use std::{
+    fs::read_to_string,
+    io::{stdin, stdout, ErrorKind, Write},
+    path::Path,
+};
 
-use self::vm::{VirtualMachine, InterpretResult};
+use self::vm::{InterpretResult, VirtualMachine};
 
 pub mod chunk;
+pub mod compiler;
+pub mod error;
 pub mod instruction;
 pub mod value;
 pub mod vm;
-pub mod error;
-pub mod compiler;
 
 pub struct Lox;
 
