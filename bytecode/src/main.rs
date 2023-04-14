@@ -8,8 +8,6 @@ fn main() {
     chunk.write(Instruction::Constant(constant), 123);
     chunk.write(Instruction::Return, 123);
 
-    println!("{}", chunk.disassemble());
-
     let mut vm = VirtualMachine::new();
     let _ = vm.interpret(chunk);
 }
