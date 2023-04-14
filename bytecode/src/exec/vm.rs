@@ -1,6 +1,6 @@
-use crate::{
-    chunk::Chunk, compiler::compile, error::LoxError, instruction::Instruction, value::Value,
-};
+use crate::repr::{chunk::Chunk, error::LoxError, instruction::Instruction, value::Value};
+
+use super::compiler::compile;
 
 pub type InterpretResult = Result<(), LoxError>;
 
