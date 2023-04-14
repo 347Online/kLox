@@ -1,4 +1,4 @@
-use crate::lox::{chunk::Chunk, instruction::Instruction};
+use crate::lox::{chunk::Chunk, instruction::Instruction, vm::VirtualMachine};
 
 pub mod lox;
 
@@ -7,5 +7,9 @@ fn main() {
     let constant = chunk.add_constant(1.2);
     chunk.write(Instruction::Constant(constant), 123);
     chunk.write(Instruction::Return, 123);
+
     println!("{}", chunk.disassemble());
+
+    let mut vm = VirtualMachine::new();
+    let _ = vm.interpret(chunk);
 }
