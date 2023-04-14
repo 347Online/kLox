@@ -28,11 +28,7 @@ impl Chunk {
 
     pub fn write(&mut self, instruction: Instruction, line: usize) {
         self.code.push(instruction);
-        self.lines.push(line);
-        // instruction
-        //     .as_bytes()
-        //     .iter()
-        //     .for_each(|byte| self.code.push(*byte));
+        self.lines.push(line); // TODO: This is "hilariously wasteful" of memory
     }
 
     pub fn add_constant(&mut self, value: Value) -> u8 {
