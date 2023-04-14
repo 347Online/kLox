@@ -53,6 +53,10 @@ impl VirtualMachine {
                     let constant = chunk.read_constant(*index as usize);
                     self.push(constant);
                 },
+                Negate => {
+                    let a = self.pop();
+                    self.push(-a);
+                }
                 Return => {
                     let value = self.pop();
                     println!("{}", value);

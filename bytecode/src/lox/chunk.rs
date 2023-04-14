@@ -62,16 +62,21 @@ impl Chunk {
 
     #[cfg(debug_assertions)]
     pub fn disassemble_instruction(&self, instruction: &Instruction) -> (String, usize) {
-        let len = instruction.as_bytes().len();
+        use Instruction::*;
 
-        fn simple(name: &str) -> String {
-            name.to_string()
+        macro_rules! simple {
+            () => {
+                format!("{:?}", instruction)
+            };
         }
 
-        use Instruction::*;
         const WIDTH: usize = 16;
+
+        let len = instruction.as_bytes().len();
+
         let repr = match instruction {
-            Return => simple("Return"),
+            Return => simple!(),
+            Negate => simple!(),
             Constant(index) => {
                 let constant = &self.constants[*index as usize];
                 format!("{:<WIDTH$} {:>4} '{}'", "Constant", index, constant)

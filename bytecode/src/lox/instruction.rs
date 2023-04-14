@@ -2,6 +2,7 @@
 #[repr(u8)]
 pub enum Instruction {
     Return,
+    Negate,
     Constant(u8),
 }
 
@@ -19,9 +20,16 @@ impl Instruction {
     pub fn as_bytes(&self) -> Vec<u8> {
         let code = self.opcode();
 
+        macro_rules! simple {
+            () => {
+                vec![code]
+            }
+        }
+
         match self {
             Constant(index) => vec![code, *index],
-            Return => vec![code],
+            Return => simple!(),
+            Negate => simple!(),
         }
     }
 }
