@@ -1,4 +1,4 @@
-use super::{instruction::Instruction, value::Value};
+use crate::{instruction::Instruction, value::Value};
 
 #[derive(Debug)]
 pub struct Chunk {

@@ -3,14 +3,7 @@ use std::{
     io::{stdin, stdout, ErrorKind, Write},
 };
 
-use self::vm::{InterpretResult, VirtualMachine};
-
-pub mod chunk;
-pub mod compiler;
-pub mod error;
-pub mod instruction;
-pub mod value;
-pub mod vm;
+use crate::vm::{InterpretResult, VirtualMachine};
 
 pub fn run_prompt() {
     let mut vm = VirtualMachine::new();

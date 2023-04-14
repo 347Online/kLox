@@ -1,6 +1,4 @@
-use lox::{run_prompt, run_file};
-
-pub mod lox;
+use bytecode::lox::{run_file, run_prompt};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
