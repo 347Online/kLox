@@ -39,6 +39,18 @@ impl VirtualMachine {
         self.stack[self.stack_ptr]
     }
 
+    pub fn pair(&mut self) -> (Value, Value) {
+        let b = self.pop();
+        let a = self.pop();
+
+        (a, b)
+    }
+
+    pub fn binary(&mut self, f: impl FnOnce(Value, Value) -> Value) {
+        let (a, b) = self.pair();
+        self.push(f(a, b))
+    }
+
     fn run(&mut self) -> InterpretResult {
         let chunk = self.chunk.take().unwrap();
         
@@ -53,10 +65,17 @@ impl VirtualMachine {
                     let constant = chunk.read_constant(*index as usize);
                     self.push(constant);
                 },
+
+                Add => self.binary(|x, y| x + y),
+                Subtract => self.binary(|x, y| x - y),
+                Multiply => self.binary(|x, y| x * y),
+                Divide => self.binary(|x, y| x / y),
+
                 Negate => {
                     let a = self.pop();
                     self.push(-a);
                 }
+
                 Return => {
                     let value = self.pop();
                     println!("{}", value);

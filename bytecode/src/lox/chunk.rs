@@ -76,7 +76,14 @@ impl Chunk {
 
         let repr = match instruction {
             Return => simple!(),
+
+            Add => simple!(),
+            Subtract => simple!(),
+            Multiply => simple!(),
+            Divide => simple!(),
+
             Negate => simple!(),
+
             Constant(index) => {
                 let constant = &self.constants[*index as usize];
                 format!("{:<WIDTH$} {:>4} '{}'", "Constant", index, constant)

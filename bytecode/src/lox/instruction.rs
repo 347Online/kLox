@@ -1,9 +1,16 @@
 #[derive(Debug)]
 #[repr(u8)]
 pub enum Instruction {
-    Return,
-    Negate,
     Constant(u8),
+    
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    
+    Negate,
+    
+    Return,
 }
 
 use Instruction::*;
@@ -23,13 +30,20 @@ impl Instruction {
         macro_rules! simple {
             () => {
                 vec![code]
-            }
+            };
         }
 
         match self {
             Constant(index) => vec![code, *index],
-            Return => simple!(),
+
+            Add => simple!(),
+            Subtract => simple!(),
+            Multiply => simple!(),
+            Divide => simple!(),
+
             Negate => simple!(),
+
+            Return => simple!(),
         }
     }
 }
