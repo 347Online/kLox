@@ -2,9 +2,9 @@ use super::{instruction::Instruction, value::Value};
 
 #[derive(Debug)]
 pub struct Chunk {
+    code: Vec<Instruction>,
     name: String,
     constants: Vec<Value>,
-    code: Vec<Instruction>,
     lines: Vec<usize>,
 }
 
@@ -16,6 +16,14 @@ impl Chunk {
             code: vec![],
             lines: vec![],
         }
+    }
+
+    pub fn instructions(&self) -> &Vec<Instruction> {
+        &self.code
+    }
+
+    pub fn read_constant(&self, index: usize) -> Value {
+        self.constants[index]
     }
 
     pub fn write(&mut self, instruction: Instruction, line: usize) {
