@@ -2,7 +2,7 @@ use crate::lox::instruction::Instruction;
 
 use super::{error::LoxError, chunk::Chunk, value::Value};
 
-type InterpretResult = Result<(), LoxError>;
+pub type InterpretResult = Result<(), LoxError>;
 
 const STACK_MAX: usize = 256;
 
