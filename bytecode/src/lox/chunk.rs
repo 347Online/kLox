@@ -41,6 +41,7 @@ impl Chunk {
         len
     }
 
+    #[cfg(debug_assertions)]
     pub fn disassemble(&self) -> String {
         let mut chunk = format!("== {} ==", self.name);
         let mut offset = 0;
@@ -59,6 +60,7 @@ impl Chunk {
         chunk
     }
 
+    #[cfg(debug_assertions)]
     pub fn disassemble_instruction(&self, instruction: &Instruction) -> (String, usize) {
         let len = instruction.as_bytes().len();
 
