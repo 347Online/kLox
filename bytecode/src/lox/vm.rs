@@ -1,6 +1,6 @@
 use crate::lox::instruction::Instruction;
 
-use super::{error::LoxError, chunk::Chunk, value::Value};
+use super::{error::LoxError, chunk::Chunk, value::Value, compiler::compile};
 
 pub type InterpretResult = Result<(), LoxError>;
 
@@ -22,11 +22,9 @@ impl VirtualMachine {
         }
     }
     
-    //TODO: take in source instead
-    pub fn interpret(&mut self, source: Chunk) -> InterpretResult {
-        self.chunk = Some(source);
-
-        self.run()
+    pub fn interpret(&mut self, source: String) -> InterpretResult {
+        compile(source);
+        Ok(())
     }
 
     pub fn push(&mut self, value: Value) {

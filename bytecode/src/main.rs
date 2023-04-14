@@ -7,7 +7,7 @@ fn main() {
 
     match len {
         1 => Lox::run_prompt(),
-        2 => Lox::run_file(args[1].into()),
+        2 => Lox::run_file(&args[1]),
         _ => println!("Usage: klox [script]"),
     }
 }

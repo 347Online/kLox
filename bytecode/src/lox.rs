@@ -1,4 +1,4 @@
-use std::{io::{stdin, stdout, Write, ErrorKind}, path::PathBuf, fs::read_to_string};
+use std::{io::{stdin, stdout, Write, ErrorKind}, path::Path, fs::read_to_string};
 
 use self::vm::{VirtualMachine, InterpretResult};
 
@@ -7,6 +7,7 @@ pub mod instruction;
 pub mod value;
 pub mod vm;
 pub mod error;
+pub mod compiler;
 
 pub struct Lox;
 
@@ -30,17 +31,17 @@ impl Lox {
                 break;
             }
 
-            Lox::run(line, &mut vm);
+            let result = Lox::run(line, &mut vm);
         }
     }
 
-    pub fn run_file(path: PathBuf) {
-        let code = match read_to_string(&path) {
+    pub fn run_file(path: &str) {
+        let code = match read_to_string(path) {
             Ok(code) => code,
             Err(error) => match error.kind() {
                 ErrorKind::NotFound => {
-                    eprintln!("File '{}' not found", path.to_string_lossy());
-                    String::new()
+                    eprintln!("File '{}' not found", path);
+                    return;
                 }
 
                 _ => panic!("An error occurred: {}", error),
