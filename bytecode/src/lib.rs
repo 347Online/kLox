@@ -28,7 +28,7 @@ pub fn run_prompt() {
           break;
       }
 
-      let result = run(line, &mut vm);
+      let result = run(&line, &mut vm);
   }
 }
 
@@ -46,9 +46,9 @@ pub fn run_file(path: &str) {
   };
 
   let mut vm = VirtualMachine::new();
-  let result = run(code, &mut vm);
+  let result = run(&code, &mut vm);
 }
 
-pub fn run(source: String, vm: &mut VirtualMachine) -> InterpretResult {
+pub fn run(source: &str, vm: &mut VirtualMachine) -> InterpretResult {
   vm.interpret(source)
 }
