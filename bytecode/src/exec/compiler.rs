@@ -1,8 +1,8 @@
-use crate::repr::token::TokenType;
+use crate::repr::{error::LoxResult, token::TokenType};
 
 use super::scanner::Scanner;
 
-pub fn compile(source: &str) {
+pub fn compile(source: &str) -> LoxResult<()> {
     let mut scanner = Scanner::new(source);
 
     let mut line = 0;
@@ -21,4 +21,6 @@ pub fn compile(source: &str) {
             break;
         }
     }
+
+    Ok(())
 }

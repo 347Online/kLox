@@ -46,7 +46,7 @@ impl Scanner {
             '>' => self.match_next('=', GreaterEqual, Greater),
 
             '"' => return self.string(),
-            
+
             c if c.is_ascii_digit() => return self.number(c),
 
             c if c.is_ascii_alphabetic() || c == '_' => return self.ident(c),
@@ -93,7 +93,7 @@ impl Scanner {
             "var" => Var,
             "while" => While,
 
-            _ => Identifier
+            _ => Identifier,
         }
     }
 

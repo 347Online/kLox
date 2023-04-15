@@ -1,4 +1,6 @@
 pub enum LoxError {
-    CompileError,
-    RuntimeError,
+    CompileError(String),
+    RuntimeError(String),
 }
+
+pub type LoxResult<T> = Result<T, LoxError>;

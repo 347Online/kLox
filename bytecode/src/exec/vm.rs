@@ -1,8 +1,6 @@
-use crate::repr::{chunk::Chunk, error::LoxError, instruction::Instruction, value::Value};
+use crate::repr::{chunk::Chunk, error::LoxResult, instruction::Instruction, value::Value};
 
 use super::compiler::compile;
-
-pub type InterpretResult = Result<(), LoxError>;
 
 const STACK_MAX: usize = 256;
 
@@ -21,8 +19,8 @@ impl VirtualMachine {
         }
     }
 
-    pub fn interpret(&mut self, source: &str) -> InterpretResult {
-        compile(source);
+    pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
+        compile(source)?;
         Ok(())
     }
 
@@ -48,7 +46,7 @@ impl VirtualMachine {
         self.push(f(a, b))
     }
 
-    fn run(&mut self) -> InterpretResult {
+    fn run(&mut self) -> LoxResult<()> {
         let chunk = self.chunk.take().unwrap();
 
         #[cfg(debug_assertions)]
