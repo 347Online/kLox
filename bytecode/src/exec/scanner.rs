@@ -69,13 +69,32 @@ impl Scanner {
             }
         }
 
-        self.create_token(self.ident_type(), lexeme)
+        self.create_token(self.ident_type(&lexeme), lexeme)
     }
 
-    fn ident_type(&self) -> TokenType {
-        
+    fn ident_type(&self, lexeme: &str) -> TokenType {
+        use TokenType::*;
 
-        TokenType::Identifier
+        match lexeme {
+            "and" => And,
+            "class" => Class,
+            "else" => Else,
+            "false" => False,
+            "fun" => Fun,
+            "for" => For,
+            "if" => If,
+            "nil" => Nil,
+            "or" => Or,
+            "print" => Print,
+            "return" => Return,
+            "super" => Super,
+            "this" => This,
+            "true" => True,
+            "var" => Var,
+            "while" => While,
+
+            _ => Identifier
+        }
     }
 
     fn number(&mut self, first: char) -> Token {
