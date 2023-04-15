@@ -2,7 +2,6 @@ use crate::repr::token::{Token, TokenType};
 
 pub struct Scanner {
     source: Vec<char>,
-    start: usize,
     current: usize,
     line: usize,
 }
@@ -13,8 +12,7 @@ impl Scanner {
 
         Scanner {
             source,
-            start: 0,
-            current: 1,
+            current: 0,
             line: 1,
         }
     }
@@ -23,8 +21,6 @@ impl Scanner {
         use TokenType::*;
 
         self.skip_whitespace();
-        self.start = self.current;
-
         if self.is_at_end() {
             return self.create_token(Eof, "");
         }
@@ -49,14 +45,37 @@ impl Scanner {
             '<' => self.match_next('=', LessEqual, Less),
             '>' => self.match_next('=', GreaterEqual, Greater),
 
+            '"' => return self.string(),
+
             _ => return self.error("Unexpected character."),
         };
 
         self.create_token(kind, c)
     }
 
+    fn string(&mut self) -> Token {
+        let mut lexeme
+         = String::new();
+        let mut t = 0;
+        while self.peek() != Some('"') && !self.is_at_end() {
+            t += 1;
+            if self.peek() == Some('\n') {
+                self.line += 1;
+            }
+            let c = self.advance();
+            lexeme.push(c);
+        }
+
+        if self.is_at_end() {
+            return self.error("Unterminated string.");
+        }
+
+        self.advance();
+        self.create_token(TokenType::String, lexeme)
+    }
+
     fn match_next(&mut self, c: char, a: TokenType, b: TokenType) -> TokenType {
-        if self.peek() == Some(&c) {
+        if self.peek() == Some(c) {
             self.advance();
             a
         } else {
@@ -66,14 +85,26 @@ impl Scanner {
 
     fn skip_whitespace(&mut self) {
         while let Some(c) = self.peek() {
-            if c.is_ascii_whitespace() {
-                if c == &'\n' {
-                    self.line += 1;
+            match c {
+                '/' => {
+                    if self.peek_next() == Some('/') {
+                        while self.peek() != Some('\n') {
+                            // A commment goes until the end of the line
+                            self.advance();
+                        }
+                    } else {
+                        return;
+                    }
                 }
 
-                self.advance();
-            } else {
-                break;
+                _ if c.is_ascii_whitespace() => {
+                    if c == '\n' {
+                        self.line += 1;
+                    }
+                    self.advance();
+                }
+
+                _ => return,
             }
         }
     }
@@ -83,12 +114,12 @@ impl Scanner {
         self.source[self.current - 1]
     }
 
-    fn peek(&self) -> Option<&char> {
-        self.source.get(self.current)
+    fn peek(&self) -> Option<char> {
+        self.source.get(self.current).cloned()
     }
 
-    fn peek_next(&self) -> Option<&char> {
-        self.source.get(self.current + 1)
+    fn peek_next(&self) -> Option<char> {
+        self.source.get(self.current + 1).cloned()
     }
 
     fn is_at_end(&self) -> bool {
