@@ -61,8 +61,9 @@ impl Scanner {
         let mut lexeme = String::from(first);
 
         while let Some(c) = self.peek() {
-            if c == '-' || c.is_ascii_alphanumeric() {
+            if c == '_' || c.is_ascii_alphanumeric() {
                 lexeme.push(c);
+                self.advance();
             } else {
                 break;
             }
