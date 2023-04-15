@@ -46,6 +46,10 @@ impl Scanner {
             '>' => self.match_next('=', GreaterEqual, Greater),
 
             '"' => return self.string(),
+            
+            c if c.is_ascii_digit() => return self.number(c),
+
+            c if c.is_ascii_alphabetic() || c == '_' => return self.ident(c),
 
             _ => return self.error("Unexpected character."),
         };
@@ -53,12 +57,57 @@ impl Scanner {
         self.create_token(kind, c)
     }
 
+    fn ident(&mut self, first: char) -> Token {
+        let mut lexeme = String::from(first);
+
+        while let Some(c) = self.peek() {
+            if c == '-' || c.is_ascii_alphanumeric() {
+                lexeme.push(c);
+            } else {
+                break;
+            }
+        }
+
+        self.create_token(self.ident_type(), lexeme)
+    }
+
+    fn ident_type(&self) -> TokenType {
+        
+
+        TokenType::Identifier
+    }
+
+    fn number(&mut self, first: char) -> Token {
+        let mut lexeme = String::from(first);
+        macro_rules! digits {
+            () => {
+                while let Some(c) = self.peek() {
+                    if c.is_ascii_digit() {
+                        lexeme.push(self.advance());
+                    } else {
+                        break;
+                    }
+                }
+            };
+        }
+
+        digits!();
+
+        if let Some('.') = self.peek() {
+            if let Some(d) = self.peek_next() {
+                if d.is_ascii_digit() {
+                    lexeme.push(self.advance());
+                    digits!();
+                }
+            }
+        }
+
+        self.create_token(TokenType::Number, lexeme)
+    }
+
     fn string(&mut self) -> Token {
-        let mut lexeme
-         = String::new();
-        let mut t = 0;
+        let mut lexeme = String::new();
         while self.peek() != Some('"') && !self.is_at_end() {
-            t += 1;
             if self.peek() == Some('\n') {
                 self.line += 1;
             }
