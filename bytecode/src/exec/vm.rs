@@ -75,7 +75,7 @@ impl VirtualMachine {
             }
         }
 
-        todo!()
+        Ok(())
     }
 }
 

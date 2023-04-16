@@ -8,6 +8,7 @@ use crate::repr::{
 
 use super::scanner::Scanner;
 
+#[derive(Debug, Clone, Copy)]
 enum Precedence {
     Min,
     Assignment,
@@ -42,26 +43,11 @@ impl From<u8> for Precedence {
     }
 }
 
-// impl From<TokenType> for Precedence {
-//     fn from(value: TokenType) -> Self {
-//         use Precedence::*;
-
-//         match value {
-//             TokenType::Plus => Term,
-//             TokenType::Minus => Term,
-//             TokenType::Slash => Factor,
-//             TokenType::Star => Factor,
-
-//             _ => Min,
-//         }
-//     }
-// }
-
 enum ParseFn {
     Unary,
     Binary,
     Grouping,
-    Number,
+    Num,
     Null,
 }
 
@@ -103,7 +89,9 @@ impl From<TokenType> for Rule {
             Plus => Rule::new(Null, Binary, Precedence::Term),
 
             Star => Rule::new(Null, Binary, Precedence::Factor),
-            Star => Rule::new(Null, Binary, Precedence::Factor),
+            Slash => Rule::new(Null, Binary, Precedence::Factor),
+
+            Number => Rule::new(Num, Null, Precedence::Min),
 
             _ => Rule::default(),
         }
@@ -123,8 +111,8 @@ pub struct Compiler {
 impl Compiler {
     pub fn new(source: &str) -> Self {
         let scanner = Scanner::new(source);
-        let current = Token::null();
-        let previous = Token::null();
+        let current = Token::default();
+        let previous = Token::default();
 
         Compiler {
             scanner,
@@ -132,7 +120,7 @@ impl Compiler {
             previous,
             had_error: false,
             panic_mode: false,
-            chunk: Chunk::default(),
+            chunk: Chunk::new("Compiled Chunk"),
         }
     }
 
@@ -146,17 +134,45 @@ impl Compiler {
             return Err(LoxError::CompileError);
         }
 
-        todo!()
-        // Ok(self.chunk)
+        self.instruction(Instruction::Return);
+
+        Ok(self.chunk())
+    }
+
+    pub fn chunk(&mut self) -> Chunk {
+        std::mem::replace(&mut self.chunk, Chunk::new("Compiled Chunk"))
     }
 
     fn precedence(&mut self, prec: Precedence) {
         self.advance();
 
         let rule = Rule::from(self.previous.kind());
+        if let ParseFn::Null = rule.prefix {
+            self.error("Expect expression.");
+            return;
+        }
+        self.parse(rule.prefix);
+
+        while prec as u8 <= Rule::from(self.current.kind()).prec as u8 {
+            self.advance();
+            let rule = Rule::from(self.previous.kind());
+            self.parse(rule.infix);
+        }
     }
 
-    fn expression(&mut self) {}
+    fn parse(&mut self, f: ParseFn) {
+        match f {
+            ParseFn::Unary => self.unary(),
+            ParseFn::Binary => self.binary(),
+            ParseFn::Grouping => self.grouping(),
+            ParseFn::Num => self.number(),
+            ParseFn::Null => (),
+        }
+    }
+
+    fn expression(&mut self) {
+        self.precedence(Precedence::Assignment);
+    }
 
     fn grouping(&mut self) {
         self.expression();
@@ -165,7 +181,6 @@ impl Compiler {
 
     fn unary(&mut self) {
         let op = self.previous.kind();
-        self.expression();
 
         self.precedence(Precedence::Unary);
         match op {
@@ -198,8 +213,6 @@ impl Compiler {
             .parse()
             .expect("Lexeme is already checked for number-only characters");
 
-        // let index = self.chunk.add_constant(value);
-        // self.chunk.write(Instruction::Constant(index as u8), self.previous.line());
         self.constant(value);
     }
 
@@ -225,13 +238,15 @@ impl Compiler {
                 break;
             }
 
-            self.error_current("");
+            let message = self.current.lexeme();
+            self.error_current(&message);
         }
     }
 
     fn consume(&mut self, kind: TokenType, message: &str) {
         if self.current.kind() == kind {
             self.advance();
+            return;
         }
 
         self.error_current(message);

@@ -21,6 +21,7 @@ impl Scanner {
         use TokenType::*;
 
         self.skip_whitespace();
+        
         if self.is_at_end() {
             return self.create_token(Eof, "");
         }
@@ -162,7 +163,7 @@ impl Scanner {
                 '/' => {
                     if self.peek_next() == Some('/') {
                         while self.peek() != Some('\n') {
-                            // A commment goes until the end of the line
+                            // A comment goes until the end of the line
                             self.advance();
                         }
                     } else {
