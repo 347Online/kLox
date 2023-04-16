@@ -28,15 +28,11 @@ impl Chunk {
 
     pub fn write(&mut self, instruction: Instruction, line: usize) {
         self.code.push(instruction);
-        self.lines.push(line);
-        // instruction
-        //     .as_bytes()
-        //     .iter()
-        //     .for_each(|byte| self.code.push(*byte));
+        self.lines.push(line); // TODO: This is "hilariously wasteful" of memory
     }
 
-    pub fn add_constant(&mut self, value: Value) -> u8 {
-        let len = self.constants.len() as u8;
+    pub fn add_constant(&mut self, value: Value) -> usize {
+        let len = self.constants.len();
         self.constants.push(value);
         len
     }
@@ -91,5 +87,16 @@ impl Chunk {
         };
 
         (repr, len)
+    }
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Chunk {
+            code: vec![],
+            name: String::from("TEST CHUNK"),
+            constants: vec![],
+            lines: vec![],
+        }
     }
 }

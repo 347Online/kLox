@@ -1,32 +1,26 @@
-use crate::lox::instruction::Instruction;
+use crate::repr::{chunk::Chunk, error::LoxResult, instruction::Instruction, value::Value};
 
-use super::{error::LoxError, chunk::Chunk, value::Value};
-
-type InterpretResult = Result<(), LoxError>;
+use super::compiler::Compiler;
 
 const STACK_MAX: usize = 256;
 
 pub struct VirtualMachine {
-    chunk: Option<Chunk>,
     stack: [Value; STACK_MAX],
     stack_ptr: usize,
 }
 
 impl VirtualMachine {
-
     pub fn new() -> Self {
         VirtualMachine {
-            chunk: None,
             stack: [0.0; STACK_MAX],
             stack_ptr: 0,
         }
     }
-    
-    //TODO: take in source instead
-    pub fn interpret(&mut self, source: Chunk) -> InterpretResult {
-        self.chunk = Some(source);
 
-        self.run()
+    pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
+        let mut parser = Compiler::new(source);
+        let chunk = parser.compile()?;
+        self.run(chunk)
     }
 
     pub fn push(&mut self, value: Value) {
@@ -51,20 +45,17 @@ impl VirtualMachine {
         self.push(f(a, b))
     }
 
-    fn run(&mut self) -> InterpretResult {
-        let chunk = self.chunk.take().unwrap();
-        
+    fn run(&mut self, chunk: Chunk) -> LoxResult<()> {
         #[cfg(debug_assertions)]
         println!("{}", chunk.disassemble());
 
         use Instruction::*;
         for instruction in chunk.instructions() {
-
             match instruction {
                 Constant(index) => {
                     let constant = chunk.read_constant(*index as usize);
                     self.push(constant);
-                },
+                }
 
                 Add => self.binary(|x, y| x + y),
                 Subtract => self.binary(|x, y| x - y),
@@ -79,12 +70,12 @@ impl VirtualMachine {
                 Return => {
                     let value = self.pop();
                     println!("{}", value);
-                    return Ok(())
-                },
+                    return Ok(());
+                }
             }
         }
 
-        todo!()
+        Ok(())
     }
 }
 
