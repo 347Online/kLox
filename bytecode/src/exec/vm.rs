@@ -1,11 +1,10 @@
 use crate::repr::{chunk::Chunk, error::LoxResult, instruction::Instruction, value::Value};
 
-use super::compiler::compile;
+use super::compiler::Compiler;
 
 const STACK_MAX: usize = 256;
 
 pub struct VirtualMachine {
-    chunk: Option<Chunk>,
     stack: [Value; STACK_MAX],
     stack_ptr: usize,
 }
@@ -13,15 +12,15 @@ pub struct VirtualMachine {
 impl VirtualMachine {
     pub fn new() -> Self {
         VirtualMachine {
-            chunk: None,
             stack: [0.0; STACK_MAX],
             stack_ptr: 0,
         }
     }
 
     pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
-        compile(source)?;
-        Ok(())
+        let mut parser = Compiler::new(source);
+        let chunk = parser.compile()?;
+        self.run(chunk)
     }
 
     pub fn push(&mut self, value: Value) {
@@ -46,9 +45,7 @@ impl VirtualMachine {
         self.push(f(a, b))
     }
 
-    fn run(&mut self) -> LoxResult<()> {
-        let chunk = self.chunk.take().unwrap();
-
+    fn run(&mut self, chunk: Chunk) -> LoxResult<()> {
         #[cfg(debug_assertions)]
         println!("{}", chunk.disassemble());
 

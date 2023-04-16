@@ -57,6 +57,10 @@ impl Scanner {
         self.create_token(kind, c)
     }
 
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
     fn ident(&mut self, first: char) -> Token {
         let mut lexeme = String::from(first);
 

@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen,
@@ -51,7 +51,7 @@ pub enum TokenType {
     Error,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     kind: TokenType,
     lexeme: String,
@@ -73,5 +73,14 @@ impl Token {
 
     pub fn line(&self) -> usize {
         self.line
+    }
+
+    // TODO: Please do not do this
+    pub fn null() -> Token {
+        Token {
+            kind: TokenType::Nil,
+            lexeme: String::new(),
+            line: 9999,
+        }
     }
 }
