@@ -47,7 +47,7 @@ impl VirtualMachine {
 
     fn run(&mut self, chunk: Chunk) -> LoxResult<()> {
         #[cfg(debug_assertions)]
-        println!("{}", chunk.disassemble());
+        println!("{}", chunk.disassemble("code"));
 
         use Instruction::*;
         for instruction in chunk.instructions() {

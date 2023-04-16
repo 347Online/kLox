@@ -1,17 +1,15 @@
 use super::{instruction::Instruction, value::Value};
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct Chunk {
     code: Vec<Instruction>,
-    name: String,
     constants: Vec<Value>,
     lines: Vec<usize>,
 }
 
 impl Chunk {
-    pub fn new(name: &str) -> Self {
+    pub fn new() -> Self {
         Chunk {
-            name: name.to_string(),
             constants: vec![],
             code: vec![],
             lines: vec![],
@@ -38,16 +36,16 @@ impl Chunk {
     }
 
     #[cfg(debug_assertions)]
-    pub fn disassemble(&self) -> String {
-        let mut chunk = format!("== {} ==", self.name);
+    pub fn disassemble(&self, name: &str) -> String {
+        let mut chunk = format!("== {} ==", name);
         let mut offset = 0;
         for (i, instruction) in self.code.iter().enumerate() {
             let (instruction, len) = self.disassemble_instruction(instruction);
 
             let line = if i > 0 && self.lines[i] == self.lines[i - 1] {
-                String::from("  |")
+                String::from("   |")
             } else {
-                self.lines[i].to_string()
+                format!("{:>4}", self.lines[i])
             };
             chunk.push_str(&format!("\n{:04}  {} {}", offset, line, instruction));
             offset += len
@@ -87,16 +85,5 @@ impl Chunk {
         };
 
         (repr, len)
-    }
-}
-
-impl Default for Chunk {
-    fn default() -> Self {
-        Chunk {
-            code: vec![],
-            name: String::from("TEST CHUNK"),
-            constants: vec![],
-            lines: vec![],
-        }
     }
 }
