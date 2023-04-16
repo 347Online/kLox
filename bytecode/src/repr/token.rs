@@ -67,20 +67,21 @@ impl Token {
         self.kind
     }
 
-    pub fn lexeme(&self) -> &str {
-        &self.lexeme
+    pub fn lexeme(&self) -> String {
+        self.lexeme.to_string()
     }
 
     pub fn line(&self) -> usize {
         self.line
     }
+}
 
-    // TODO: Please do not do this
-    pub fn null() -> Token {
+impl Default for Token {
+    fn default() -> Self {
         Token {
             kind: TokenType::Nil,
-            lexeme: String::new(),
-            line: 9999,
+            lexeme: String::from(""),
+            line: 0,
         }
     }
 }
