@@ -120,7 +120,7 @@ impl Compiler {
             previous,
             had_error: false,
             panic_mode: false,
-            chunk: Chunk::new("Compiled Chunk"),
+            chunk: new_chunk(),
         }
     }
 
@@ -140,7 +140,7 @@ impl Compiler {
     }
 
     pub fn chunk(&mut self) -> Chunk {
-        std::mem::replace(&mut self.chunk, Chunk::new("Compiled Chunk"))
+        std::mem::replace(&mut self.chunk, new_chunk())
     }
 
     fn precedence(&mut self, prec: Precedence) {
@@ -281,4 +281,9 @@ impl Compiler {
         eprintln!(": {}", message);
         self.had_error = true;
     }
+}
+
+fn new_chunk() -> Chunk {
+    // TODO: Need a more semantic name for this
+    Chunk::new("Compiled Chunk")
 }
