@@ -30,6 +30,7 @@ pub fn run_prompt() {
             break;
         }
 
+        // TODO: Handle result
         let result = run(&line, &mut vm);
     }
 }
@@ -48,6 +49,7 @@ pub fn run_file(path: &str) {
     };
 
     let mut vm = VirtualMachine::new();
+    // TODO: Handle result
     let result = run(&code, &mut vm);
 }
 
