@@ -120,7 +120,7 @@ impl Compiler {
             previous,
             had_error: false,
             panic_mode: false,
-            chunk: new_chunk(),
+            chunk: Chunk::default(),
         }
     }
 
@@ -134,13 +134,23 @@ impl Compiler {
             return Err(LoxError::CompileError);
         }
 
-        self.instruction(Instruction::Return);
+        self.finish();
 
-        Ok(self.chunk())
+        Ok(self.get_chunk())
     }
 
-    pub fn chunk(&mut self) -> Chunk {
-        std::mem::replace(&mut self.chunk, new_chunk())
+    fn finish(&mut self) {
+        self.instruction(Instruction::Return);
+
+        #[cfg(debug_assertions)]
+        if !self.had_error {
+            self.chunk.disassemble("code");
+        }
+
+    }
+
+    fn get_chunk(&mut self) -> Chunk {
+        std::mem::take(&mut self.chunk)
     }
 
     fn precedence(&mut self, prec: Precedence) {
@@ -281,9 +291,4 @@ impl Compiler {
         eprintln!(": {}", message);
         self.had_error = true;
     }
-}
-
-fn new_chunk() -> Chunk {
-    // TODO: Need a more semantic name for this
-    Chunk::new("Compiled Chunk")
 }
