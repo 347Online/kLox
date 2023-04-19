@@ -9,7 +9,7 @@ fn main() {
     chunk.write_byte(constant as u8, 123);
 
     chunk.write(Instruction::Return, 123);
-    chunk.disassemble("test chunk");
+    // chunk.disassemble("test chunk");
 
     let mut vm = VirtualMachine::new();
     let result = vm.interpret(chunk);
