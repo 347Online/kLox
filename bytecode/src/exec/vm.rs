@@ -33,15 +33,38 @@ impl VirtualMachine {
             #[cfg(debug_assertions)]
             self.debug(byte);
 
-            let instruction: LoxResult<Instruction> = byte.try_into();
-            match instruction {
-                Ok(opcode) => {
+            let maybe_instruction: LoxResult<Instruction> = byte.try_into();
+
+            match maybe_instruction {
+                Ok(instruction) => {
                     use Instruction::*;
 
-                    match opcode {
+                    match instruction {
                         Constant => {
                             let constant = self.read_constant();
                             self.push(constant);
+                        }
+
+                        Add => {
+                            let (a, b) = self.pop_pair();
+                            self.push(a + b)
+                        }
+                        Subtract => {
+                            let (a, b) = self.pop_pair();
+                            self.push(a - b)
+                        }
+                        Multiply => {
+                            let (a, b) = self.pop_pair();
+                            self.push(a * b)
+                        }
+                        Divide => {
+                            let (a, b) = self.pop_pair();
+                            self.push(a / b)
+                        }
+
+                        Negate => {
+                            let a = self.pop();
+                            self.push(-a);
                         }
 
                         Return => {
@@ -80,6 +103,12 @@ impl VirtualMachine {
     fn pop(&mut self) -> Value {
         self.stack_top -= 1;
         self.stack[self.stack_top]
+    }
+
+    fn pop_pair(&mut self) -> (Value, Value) {
+        let b = self.pop();
+        let a = self.pop();
+        (a, b)
     }
 
     #[cfg(debug_assertions)]

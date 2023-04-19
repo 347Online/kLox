@@ -27,9 +27,9 @@ impl Chunk {
         self.lines.push(line);
     }
 
-    pub fn add_constant(&mut self, value: Value) -> usize {
+    pub fn add_constant(&mut self, value: Value) -> u8 {
         self.constants.push(value);
-        self.constants.len() - 1
+        self.constants.len() as u8 - 1
     }
 
     pub fn read(&self, offset: usize) -> Option<u8> {
@@ -65,7 +65,7 @@ impl Chunk {
         let maybe_instruction: LoxResult<Instruction> = byte.try_into();
 
         match maybe_instruction {
-            Ok(opcode) => {
+            Ok(instruction) => {
                 print!("{:04} ", offset);
                 if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
                     print!("   | ")
@@ -73,7 +73,7 @@ impl Chunk {
                     print!("{:>4} ", self.lines[offset])
                 };
 
-                match opcode {
+                match instruction {
                     Constant => {
                         let index = self.code[offset + 1];
                         let constant = self.constants[index as usize];
@@ -82,7 +82,7 @@ impl Chunk {
                     }
 
                     _ => {
-                        println!("{:?}", opcode);
+                        println!("{:?}", instruction);
                         offset + 1
                     }
                 }

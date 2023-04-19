@@ -5,6 +5,13 @@ use super::error::LoxError;
 pub enum Instruction {
     Constant,
 
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+
+    Negate,
+
     Return,
 }
 

@@ -4,12 +4,26 @@ fn main() {
     let mut chunk = Chunk::new();
 
     let constant = chunk.add_constant(1.2);
-
     chunk.write(Instruction::Constant, 123);
-    chunk.write_byte(constant as u8, 123);
+    chunk.write_byte(constant, 123);
+
+    
+    let constant = chunk.add_constant(3.4);
+    chunk.write(Instruction::Constant, 123);
+    chunk.write_byte(constant, 123);
+    
+    chunk.write(Instruction::Add, 123);
+
+    let constant = chunk.add_constant(5.6);
+    chunk.write(Instruction::Constant, 123);
+    chunk.write_byte(constant, 123);
+
+    chunk.write(Instruction::Divide, 123);
+    chunk.write(Instruction::Negate, 123);
 
     chunk.write(Instruction::Return, 123);
-    // chunk.disassemble("test chunk");
+
+
 
     let mut vm = VirtualMachine::new();
     let result = vm.interpret(chunk);
