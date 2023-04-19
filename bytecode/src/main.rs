@@ -1,41 +1,27 @@
-use bytecode::{exec::vm::VirtualMachine, repr::{chunk::Chunk, opcode::Instruction}};
+use std::process::{Termination, ExitCode};
 
-fn main() {
-    let mut chunk = Chunk::new();
+use bytecode::{
+    repl,
+    repr::error::{LoxError, LoxResult},
+    run_file,
+};
 
-    let constant = chunk.add_constant(1.2);
-    chunk.write(Instruction::Constant, 123);
-    chunk.write_byte(constant, 123);
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().collect();
+    let len = args.len();
 
-    
-    let constant = chunk.add_constant(3.4);
-    chunk.write(Instruction::Constant, 123);
-    chunk.write_byte(constant, 123);
-    
-    chunk.write(Instruction::Add, 123);
+    let result = match len {
+        1 => repl(),
+        2 => run_file(&args[1]),
+        _ => Err(LoxError::args()),
+    };
 
-    let constant = chunk.add_constant(5.6);
-    chunk.write(Instruction::Constant, 123);
-    chunk.write_byte(constant, 123);
+    match result {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("{e}");
+            e.report()
+        }
 
-    chunk.write(Instruction::Divide, 123);
-    chunk.write(Instruction::Negate, 123);
-
-    chunk.write(Instruction::Return, 123);
-
-
-
-    let mut vm = VirtualMachine::new();
-    let result = vm.interpret(chunk);
-
-    println!("Result: {:?}", result);
-
-    // let args: Vec<String> = std::env::args().collect();
-    // let len = args.len();
-
-    // match len {
-    //     1 => run_prompt(),
-    //     2 => run_file(&args[1]),
-    //     _ => println!("Usage: klox [script]"),
-    // }
+    }
 }

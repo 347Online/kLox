@@ -1,4 +1,9 @@
-use crate::repr::{chunk::Chunk, error::{LoxResult, LoxError}, opcode::Instruction, value::Value};
+use crate::repr::{
+    chunk::Chunk,
+    error::{LoxError, LoxResult},
+    opcode::Instruction,
+    value::Value,
+};
 
 const STACK_MAX: usize = 256;
 
@@ -39,37 +44,36 @@ impl VirtualMachine {
                 Ok(instruction) => {
                     use Instruction::*;
 
+                    macro_rules! binary {
+                        ($op:tt) => {{
+                            let (a, b) = self.pop_pair();
+                            self.push(a $op b);
+                        }};
+                    }
+
+                    macro_rules! unary {
+                        ($op:tt) => {{
+                            let a = self.pop();
+                            self.push($op a);
+                        }};
+                    }
+
                     match instruction {
                         Constant => {
                             let constant = self.read_constant();
                             self.push(constant);
                         }
 
-                        Add => {
-                            let (a, b) = self.pop_pair();
-                            self.push(a + b)
-                        }
-                        Subtract => {
-                            let (a, b) = self.pop_pair();
-                            self.push(a - b)
-                        }
-                        Multiply => {
-                            let (a, b) = self.pop_pair();
-                            self.push(a * b)
-                        }
-                        Divide => {
-                            let (a, b) = self.pop_pair();
-                            self.push(a / b)
-                        }
+                        Add => binary!(+),
+                        Subtract => binary!(-),
+                        Multiply => binary!(*),
+                        Divide => binary!(/),
 
-                        Negate => {
-                            let a = self.pop();
-                            self.push(-a);
-                        }
+                        Negate => unary!(-),
 
                         Return => {
                             println!("{}", self.pop());
-                            return Ok(())
+                            return Ok(());
                         }
                     }
                 }
