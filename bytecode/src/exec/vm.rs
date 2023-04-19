@@ -1,81 +1,67 @@
-use crate::repr::{chunk::Chunk, error::LoxResult, instruction::Instruction, value::Value};
-
-use super::compiler::Compiler;
-
-const STACK_MAX: usize = 256;
+use crate::repr::{chunk::Chunk, error::LoxResult, opcode::Opcode, value::Value};
 
 pub struct VirtualMachine {
-    stack: [Value; STACK_MAX],
-    stack_ptr: usize,
+    ip: usize,
+    chunk: Chunk,
 }
 
 impl VirtualMachine {
     pub fn new() -> Self {
         VirtualMachine {
-            stack: [0.0; STACK_MAX],
-            stack_ptr: 0,
+            ip: 0,
+            chunk: Chunk::new(),
         }
     }
 
-    pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
-        let mut parser = Compiler::new(source);
-        let chunk = parser.compile()?;
-        self.run(chunk)
+    pub fn interpret(&mut self, chunk: Chunk) -> LoxResult<()> {
+        self.chunk = chunk;
+        self.ip = 0;
+
+        self.run()
     }
 
-    pub fn push(&mut self, value: Value) {
-        self.stack[self.stack_ptr] = value;
-        self.stack_ptr += 1;
-    }
+    fn run(&mut self) -> LoxResult<()> {
+        loop {
+            let byte = self.read_byte();
+            let instruction: LoxResult<Opcode> = byte.try_into();
 
-    pub fn pop(&mut self) -> Value {
-        self.stack_ptr -= 1;
-        self.stack[self.stack_ptr]
-    }
-
-    pub fn pair(&mut self) -> (Value, Value) {
-        let b = self.pop();
-        let a = self.pop();
-
-        (a, b)
-    }
-
-    pub fn binary(&mut self, f: impl FnOnce(Value, Value) -> Value) {
-        let (a, b) = self.pair();
-        self.push(f(a, b))
-    }
-
-    fn run(&mut self, chunk: Chunk) -> LoxResult<()> {
-        #[cfg(debug_assertions)]
-        println!("{}", chunk.disassemble("code"));
-
-        use Instruction::*;
-        for instruction in chunk.instructions() {
             match instruction {
-                Constant(index) => {
-                    let constant = chunk.read_constant(*index as usize);
-                    self.push(constant);
+                Ok(opcode) => {
+                    
+                    #[cfg(debug_assertions)]
+                    self.chunk.disassemble_instruction(byte, self.ip - 1);
+
+                    match opcode {
+                        Opcode::Constant => {
+                            let constant = self.read_constant();
+                            println!("{constant}");
+                        }
+
+                        Opcode::Return => break,
+                    }
                 }
 
-                Add => self.binary(|x, y| x + y),
-                Subtract => self.binary(|x, y| x - y),
-                Multiply => self.binary(|x, y| x * y),
-                Divide => self.binary(|x, y| x / y),
-
-                Negate => {
-                    let a = self.pop();
-                    self.push(-a);
-                }
-
-                Return => {
-                    let value = self.pop();
-                    println!("{}", value);
-                    return Ok(());
-                }
+                Err(e) => println!("{e}"),
             }
         }
 
         Ok(())
+    }
+
+    fn read_byte(&mut self) -> u8 {
+        let byte = self
+            .chunk
+            .read(self.ip)
+            .expect("VM Instruction Pointer out of bounds");
+        self.ip += 1;
+        byte
+    }
+
+    fn read_constant(&mut self) -> Value {
+        let index = self.read_byte();
+        self.chunk
+            .read_constant(index)
+            .expect("VM Read Constant Out of Bounds")
     }
 }
 

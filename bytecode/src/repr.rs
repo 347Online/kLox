@@ -1,5 +1,4 @@
-pub mod chunk;
+pub mod opcode;
 pub mod error;
-pub mod instruction;
-pub mod token;
+pub mod chunk;
 pub mod value;
