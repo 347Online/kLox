@@ -1,8 +1,11 @@
-use crate::repr::{chunk::Chunk, error::LoxResult, opcode::Opcode, value::Value};
+use crate::repr::{chunk::Chunk, error::LoxResult, opcode::Instruction, value::Value};
+
+const STACK_MAX: usize = 256;
 
 pub struct VirtualMachine {
     ip: usize,
     chunk: Chunk,
+    stack: [Value; STACK_MAX],
 }
 
 impl VirtualMachine {
@@ -10,6 +13,7 @@ impl VirtualMachine {
         VirtualMachine {
             ip: 0,
             chunk: Chunk::new(),
+            stack: [0.0; STACK_MAX]
         }
     }
 
@@ -23,21 +27,22 @@ impl VirtualMachine {
     fn run(&mut self) -> LoxResult<()> {
         loop {
             let byte = self.read_byte();
-            let instruction: LoxResult<Opcode> = byte.try_into();
+            let instruction: LoxResult<Instruction> = byte.try_into();
 
             match instruction {
                 Ok(opcode) => {
-                    
                     #[cfg(debug_assertions)]
                     self.chunk.disassemble_instruction(byte, self.ip - 1);
 
+                    use Instruction::*;
+
                     match opcode {
-                        Opcode::Constant => {
+                        Constant => {
                             let constant = self.read_constant();
                             println!("{constant}");
                         }
 
-                        Opcode::Return => break,
+                        Return => break,
                     }
                 }
 

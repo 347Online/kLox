@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::{opcode::Opcode, value::Value};
+use super::{opcode::Instruction, value::Value};
 
 #[derive(Debug)]
 pub struct Chunk {
@@ -18,8 +18,8 @@ impl Chunk {
         }
     }
 
-    pub fn write(&mut self, opcode: Opcode, line: usize) {
-        self.write_byte(opcode as u8, line);
+    pub fn write(&mut self, instruction: Instruction, line: usize) {
+        self.write_byte(instruction as u8, line);
     }
 
     pub fn write_byte(&mut self, byte: u8, line: usize) {
@@ -50,8 +50,6 @@ impl Default for Chunk {
 #[cfg(debug_assertions)]
 impl Chunk {
     pub fn disassemble(&self, name: &str) {
-        dbg!(&self.code);
-        dbg!(&self.constants);
         println!("== {} ==", name);
 
         let mut offset = 0;
@@ -62,11 +60,11 @@ impl Chunk {
 
     pub fn disassemble_instruction(&self, byte: u8, offset: usize) -> usize {
         use crate::repr::error::LoxResult;
-        use Opcode::*;
+        use Instruction::*;
 
-        let maybe_opcode: LoxResult<Opcode> = byte.try_into();
+        let maybe_instruction: LoxResult<Instruction> = byte.try_into();
 
-        match maybe_opcode {
+        match maybe_instruction {
             Ok(opcode) => {
                 print!("{:04} ", offset);
                 if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
