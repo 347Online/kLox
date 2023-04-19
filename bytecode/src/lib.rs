@@ -1,10 +1,10 @@
-pub mod repr;
 pub mod exec;
+pub mod repr;
 
 use std::io::Write;
 
 use exec::vm::VirtualMachine;
-use repr::error::{LoxResult, LoxError};
+use repr::error::{LoxError, LoxResult};
 
 pub fn repl() -> LoxResult<()> {
     prompt();
