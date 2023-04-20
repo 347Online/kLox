@@ -5,6 +5,8 @@ use crate::repr::{
     value::Value,
 };
 
+use super::compiler::Compiler;
+
 const STACK_MAX: usize = 256;
 
 pub struct VirtualMachine {
@@ -24,11 +26,14 @@ impl VirtualMachine {
         }
     }
 
-    pub fn interpret(&mut self, chunk: Chunk) -> LoxResult<()> {
-        self.chunk = chunk;
+    pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
+        // self.chunk = chunk;
+        let mut parser = Compiler::new(source);
+        parser.compile();
         self.ip = 0;
 
-        self.run()
+        // self.run()
+        Ok(())
     }
 
     fn run(&mut self) -> LoxResult<()> {
@@ -42,6 +47,7 @@ impl VirtualMachine {
 
             match maybe_instruction {
                 Ok(instruction) => {
+                    println!("{:?}", instruction);
                     use Instruction::*;
 
                     macro_rules! binary {

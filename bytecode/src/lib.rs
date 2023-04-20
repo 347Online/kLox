@@ -12,6 +12,8 @@ pub fn repl() -> LoxResult<()> {
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
 
+    let mut vm = VirtualMachine::new();
+
     loop {
         print!("> ");
         stdout.flush().expect("Failed to flush stdout");
@@ -22,8 +24,9 @@ pub fn repl() -> LoxResult<()> {
         if line.is_empty() {
             break;
         }
+        vm.interpret(&line)?
     }
-
+    
     Ok(())
 }
 
@@ -42,11 +45,7 @@ pub fn run_file(path: &str) -> LoxResult<()> {
 
     let mut vm = VirtualMachine::new();
     // TODO: Handle result
-    run(&code, &mut vm)
-}
-
-fn run(code: &str, vm: &mut VirtualMachine) -> LoxResult<()> {
-    todo!()
+    vm.interpret(&code)
 }
 
 fn prompt() {
