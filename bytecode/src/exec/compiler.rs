@@ -120,6 +120,7 @@ impl Compiler {
 
         match op {
             TokenType::Minus => self.emit(Instruction::Negate),
+            TokenType::Bang => self.emit(Instruction::Not),
 
             _ => unreachable!(),
         }

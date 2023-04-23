@@ -61,13 +61,6 @@ impl VirtualMachine {
                         }};
                     }
 
-                    macro_rules! unary {
-                        ($op:tt) => {{
-                            let a = self.pop();
-                            self.push($op a);
-                        }};
-                    }
-
                     match instruction {
                         Constant => {
                             let constant = self.read_constant();
@@ -83,6 +76,11 @@ impl VirtualMachine {
                         Multiply => binary!(Number, *),
                         Divide => binary!(Number, /),
 
+                        Not => {
+                            let a = self.pop().truthy();
+                            self.push(Value::Boolean(!a));
+                        }
+                        
                         Negate => {
                             if let Value::Number(a) = self.peek(0) {
                                 self.pop();

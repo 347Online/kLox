@@ -14,6 +14,7 @@ pub enum Instruction {
     Multiply,
     Divide,
 
+    Not,
     Negate,
 
     Return,

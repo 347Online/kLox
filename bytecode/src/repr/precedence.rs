@@ -65,6 +65,9 @@ impl From<TokenType> for Rule {
         let (prefix, infix, prec) = match value {
             LeftParen => (ParseFn::Grouping, ParseFn::Null, Precedence::Min),
 
+            Bang => (ParseFn::Unary, ParseFn::Null, Precedence::Min),
+            BangEqual => (ParseFn::Null, ParseFn::Binary, Precedence::Equality),
+
             Minus => (ParseFn::Unary, ParseFn::Binary, Precedence::Term),
             Plus => (ParseFn::Null, ParseFn::Binary, Precedence::Term),
 
@@ -74,7 +77,7 @@ impl From<TokenType> for Rule {
             Number => (ParseFn::Num, ParseFn::Null, Precedence::Min),
 
             Nil | True | False => (ParseFn::Literal, ParseFn::Null, Precedence::Min),
-
+            
             _ => (ParseFn::Null, ParseFn::Null, Precedence::Min),
         };
 
