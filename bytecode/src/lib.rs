@@ -24,7 +24,7 @@ pub fn repl() -> LoxResult<()> {
         if line.is_empty() {
             break;
         }
-        vm.interpret(&line)?
+        let _ = vm.interpret(&line);
     }
     
     Ok(())

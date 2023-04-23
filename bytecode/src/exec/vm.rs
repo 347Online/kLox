@@ -1,6 +1,6 @@
 use crate::repr::{
     chunk::Chunk,
-    error::{LoxError, LoxResult},
+    error::LoxResult,
     opcode::Instruction,
     value::Value,
 };
@@ -27,13 +27,11 @@ impl VirtualMachine {
     }
 
     pub fn interpret(&mut self, source: &str) -> LoxResult<()> {
-        // self.chunk = chunk;
         let mut parser = Compiler::new(source);
-        parser.compile();
+        self.chunk = parser.compile()?;
         self.ip = 0;
 
-        // self.run()
-        Ok(())
+        self.run()
     }
 
     fn run(&mut self) -> LoxResult<()> {
@@ -47,7 +45,6 @@ impl VirtualMachine {
 
             match maybe_instruction {
                 Ok(instruction) => {
-                    println!("{:?}", instruction);
                     use Instruction::*;
 
                     macro_rules! binary {

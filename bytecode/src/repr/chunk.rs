@@ -27,9 +27,9 @@ impl Chunk {
         self.lines.push(line);
     }
 
-    pub fn add_constant(&mut self, value: Value) -> u8 {
+    pub fn add_constant(&mut self, value: Value) -> usize {
         self.constants.push(value);
-        self.constants.len() as u8 - 1
+        self.constants.len() - 1
     }
 
     pub fn read(&self, offset: usize) -> Option<u8> {

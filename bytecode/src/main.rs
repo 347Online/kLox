@@ -1,6 +1,6 @@
 use std::process::{ExitCode, Termination};
 
-use bytecode::{repl, repr::error::LoxError, run_file};
+use bytecode::{repl, repr::error::{LoxError, LoxResult}, run_file};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
@@ -12,8 +12,13 @@ fn main() -> ExitCode {
         _ => Err(LoxError::args()),
     };
 
+    exit(result)
+}
+
+fn exit(result: LoxResult<()>) -> ExitCode {
     match result {
         Ok(_) => ExitCode::SUCCESS,
+        
         Err(e) => {
             eprintln!("{e}");
             e.report()
