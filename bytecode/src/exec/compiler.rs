@@ -97,7 +97,7 @@ impl Compiler {
     fn number(&mut self) {
         let lexeme = self.previous.lexeme();
         let value: f64 = lexeme.parse().expect("Failed to parse lexeme as number");
-        self.emit_constant(value);
+        self.emit_constant(Value::Number(value));
     }
 
     fn unary(&mut self) {

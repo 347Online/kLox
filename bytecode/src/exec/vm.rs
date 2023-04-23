@@ -1,6 +1,6 @@
 use crate::repr::{
     chunk::Chunk,
-    error::LoxResult,
+    error::{LoxResult, LoxError},
     opcode::Instruction,
     value::Value,
 };
@@ -21,7 +21,7 @@ impl VirtualMachine {
         VirtualMachine {
             ip: 0,
             chunk: Chunk::new(),
-            stack: [0.0; STACK_MAX],
+            stack: [Value::Nil; STACK_MAX],
             stack_top: 0,
         }
     }
@@ -48,9 +48,16 @@ impl VirtualMachine {
                     use Instruction::*;
 
                     macro_rules! binary {
-                        ($op:tt) => {{
-                            let (a, b) = self.pop_pair();
-                            self.push(a $op b);
+                        ($kind:ident, $op:tt) => {{
+                            // let (a, b) = self.pop_pair();
+                            // self.push($kind(a $op b));
+                            if let (Value::Number(a), Value::Number(b)) = (self.peek(1), self.peek(0)) {
+                                self.pop_pair();
+                                self.push(Value::$kind(a $op b));
+                            } else {
+                                self.error("Operands must be numbers.");
+                                return Err(LoxError::runtime("Operands must be numbers."))
+                            }
                         }};
                     }
 
@@ -67,12 +74,20 @@ impl VirtualMachine {
                             self.push(constant);
                         }
 
-                        Add => binary!(+),
-                        Subtract => binary!(-),
-                        Multiply => binary!(*),
-                        Divide => binary!(/),
+                        Add => binary!(Number, +),
+                        Subtract => binary!(Number, -),
+                        Multiply => binary!(Number, *),
+                        Divide => binary!(Number, /),
 
-                        Negate => unary!(-),
+                        Negate => {
+                            if let Value::Number(a) = self.peek(0) {
+                                self.pop();
+                                self.push(Value::Number(-a));
+                            } else {
+                                self.error("Operand must be a number");
+                                return Err(LoxError::runtime("Operand must be a number."))
+                            }
+                        },
 
                         Return => {
                             println!("{}", self.pop());
@@ -112,10 +127,18 @@ impl VirtualMachine {
         self.stack[self.stack_top]
     }
 
+    fn peek(&self, distance: usize) -> Value {
+        self.stack[self.stack_top - 1 - distance]
+    }
+
     fn pop_pair(&mut self) -> (Value, Value) {
         let b = self.pop();
         let a = self.pop();
         (a, b)
+    }
+
+    fn error(&mut self, message: &str) {
+        eprintln!("{}", message)
     }
 
     #[cfg(debug_assertions)]
