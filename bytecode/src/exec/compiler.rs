@@ -100,6 +100,18 @@ impl Compiler {
         self.emit_constant(Value::Number(value));
     }
 
+    fn literal(&mut self) {
+        let opcode = match self.previous.kind() {
+            TokenType::Nil => Instruction::Nil,
+            TokenType::True => Instruction::True,
+            TokenType::False => Instruction::False,
+
+            _ => unreachable!()
+        };
+
+        self.emit(opcode);
+    }
+
     fn unary(&mut self) {
         let op = self.previous.kind();
 
@@ -181,6 +193,7 @@ impl Compiler {
 
     fn parse(&mut self, f: ParseFn) {
         match f {
+            ParseFn::Literal => self.literal(),
             ParseFn::Unary => self.unary(),
             ParseFn::Binary => self.binary(),
             ParseFn::Grouping => self.grouping(),

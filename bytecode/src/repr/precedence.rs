@@ -32,6 +32,7 @@ impl TryFrom<u8> for Precedence {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParseFn {
+    Literal,
     Unary,
     Binary,
     Grouping,
@@ -71,6 +72,8 @@ impl From<TokenType> for Rule {
             Slash => (ParseFn::Null, ParseFn::Binary, Precedence::Factor),
 
             Number => (ParseFn::Num, ParseFn::Null, Precedence::Min),
+
+            Nil | True | False => (ParseFn::Literal, ParseFn::Null, Precedence::Min),
 
             _ => (ParseFn::Null, ParseFn::Null, Precedence::Min),
         };

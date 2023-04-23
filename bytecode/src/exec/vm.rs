@@ -74,6 +74,10 @@ impl VirtualMachine {
                             self.push(constant);
                         }
 
+                        Nil => self.push(Value::Nil),
+                        True => self.push(Value::Boolean(true)),
+                        False => self.push(Value::Boolean(false)),
+
                         Add => binary!(Number, +),
                         Subtract => binary!(Number, -),
                         Multiply => binary!(Number, *),
