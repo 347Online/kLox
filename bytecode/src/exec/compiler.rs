@@ -44,7 +44,7 @@ impl Compiler {
         self.consume(TokenType::Eof, "Expect end of expression.");
 
         if self.had_error {
-            return Err(LoxError::compile("Compiler Error"));
+            return Err(LoxError::CompileError);
         }
 
         self.finish();

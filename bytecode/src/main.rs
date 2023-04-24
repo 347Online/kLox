@@ -9,7 +9,7 @@ fn main() -> ExitCode {
     let result = match len {
         1 => repl(),
         2 => run_file(&args[1]),
-        _ => Err(LoxError::args()),
+        _ => Err(LoxError::IncorrectArgumentsError),
     };
 
     exit(result)

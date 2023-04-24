@@ -36,7 +36,7 @@ pub fn run_file(path: &str) -> LoxResult<()> {
         Err(error) => match error.kind() {
             std::io::ErrorKind::NotFound => {
                 // eprintln!("File '{}' not found", path);
-                return Err(LoxError::not_found(path));
+                return Err(LoxError::FileNotFoundError(path.to_string()));
             }
 
             _ => panic!("An error occurred: {}", error),

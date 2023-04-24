@@ -56,7 +56,7 @@ impl VirtualMachine {
                                 self.push(Value::$kind(a $op b));
                             } else {
                                 self.error("Operands must be numbers.");
-                                return Err(LoxError::runtime("Operands must be numbers."))
+                                return Err(LoxError::RuntimeError)
                             }
                         }};
                     }
@@ -95,7 +95,7 @@ impl VirtualMachine {
                                 self.push(Value::Number(-a));
                             } else {
                                 self.error("Operand must be a number");
-                                return Err(LoxError::runtime("Operand must be a number."))
+                                return Err(LoxError::RuntimeError)
                             }
                         },
 

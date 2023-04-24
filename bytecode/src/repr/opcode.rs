@@ -38,7 +38,7 @@ impl TryFrom<u8> for Instruction {
             let instruction = unsafe { std::mem::transmute(value) };
             Ok(instruction)
         } else {
-            let error = LoxError::compile("Unknown opcode");
+            let error = LoxError::CompileError;
             Err(error)
         }
     }

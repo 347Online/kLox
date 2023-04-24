@@ -23,7 +23,7 @@ impl TryFrom<u8> for Precedence {
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         let prec = match value {
             0..=MAX_PREC => unsafe { std::mem::transmute(value) },
-            _ => return Err(LoxError::compile("Exceeded maximum precedence")),
+            _ => return Err(LoxError::CompileError),
         };
 
         Ok(prec)
