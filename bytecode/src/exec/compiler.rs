@@ -2,7 +2,7 @@ use crate::repr::{
     chunk::Chunk,
     error::{LoxError, LoxResult},
     opcode::Instruction,
-    precedence::{Precedence, Rule, ParseFn},
+    precedence::{ParseFn, Precedence, Rule},
     token::{Token, TokenType},
     value::Value,
 };
@@ -106,7 +106,7 @@ impl Compiler {
             TokenType::True => Instruction::True,
             TokenType::False => Instruction::False,
 
-            _ => unreachable!()
+            _ => unreachable!(),
         };
 
         self.emit(opcode);
@@ -130,7 +130,8 @@ impl Compiler {
         let operator = self.previous.kind();
 
         let rule = Rule::from(operator);
-        let prec = Precedence::try_from(rule.prec() as u8 + 1).expect("Failed to get next precedence");
+        let prec =
+            Precedence::try_from(rule.prec() as u8 + 1).expect("Failed to get next precedence");
 
         self.precedence(prec);
 
@@ -155,7 +156,7 @@ impl Compiler {
             TokenType::Star => self.emit(Instruction::Multiply),
             TokenType::Slash => self.emit(Instruction::Divide),
 
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 

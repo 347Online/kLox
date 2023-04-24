@@ -4,7 +4,7 @@ use std::fmt::Display;
 pub enum Value {
     Number(f64),
     Boolean(bool),
-    Nil
+    Nil,
 }
 
 impl Value {

@@ -19,7 +19,7 @@ impl Scanner {
     pub fn scan(&mut self) -> Token {
         self.skip_whitespace();
         if self.at_end() {
-            return self.finish()
+            return self.finish();
         }
 
         let c = self.advance();
@@ -49,7 +49,7 @@ impl Scanner {
 
             c if c.is_ascii_alphabetic() || c == '_' => return self.ident(c),
 
-            _ => return self.error("Unexpected character."), 
+            _ => return self.error("Unexpected character."),
         };
 
         self.create(kind, c)
@@ -113,10 +113,9 @@ impl Scanner {
             if c == '\n' {
                 self.line += 1;
             }
-            
+
             let c = self.advance();
             lexeme.push(c);
-
         }
 
         if self.at_end() {

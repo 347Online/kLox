@@ -55,7 +55,7 @@ impl VirtualMachine {
                         }
                     }};
                 }
-                
+
                 use Instruction::*;
                 match instruction {
                     Constant => {

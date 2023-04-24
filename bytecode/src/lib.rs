@@ -26,7 +26,7 @@ pub fn repl() -> LoxResult<()> {
         }
         let _ = vm.interpret(&line);
     }
-    
+
     Ok(())
 }
 
