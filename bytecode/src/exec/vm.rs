@@ -47,7 +47,7 @@ impl VirtualMachine {
             if let Ok(instruction) = maybe_instruction {
                 macro_rules! binary {
                     ($kind:ident, $op:tt) => {{
-                        if let (Value::Number(a), Value::Number(b)) = (self.peek(1), self.peek(0)) {
+                        if let (Value::Number(a), Value::Number(b)) = self.peek_pair() {
                             self.pop_pair();
                             self.push(Value::$kind(a $op b));
                         } else {
@@ -68,11 +68,30 @@ impl VirtualMachine {
                     True => self.push(Value::Boolean(true)),
                     False => self.push(Value::Boolean(false)),
 
-                    Equal => binary!(Boolean, ==),
                     Greater => binary!(Boolean, >),
                     Less => binary!(Boolean, <),
 
-                    Add => binary!(Number, +),
+                    Equal => {
+                        let (a, b) = self.pop_pair();
+                        self.push(Value::Boolean(a == b))
+                    }
+
+                    Add => {
+                        match self.peek_pair() {
+                            (Value::String(a), Value::String(b)) => {
+                                self.pop_pair();
+                                self.push(Value::String(Box::new(*a + &*b)));
+                            }
+
+                            (Value::Number(a), Value::Number(b)) => {
+                                self.pop_pair();
+                                self.push(Value::Number(a + b));
+                            }
+
+                            _ => self.error("Operands must be two numbers or two strings."),
+                        }
+                    }
+
                     Subtract => binary!(Number, -),
                     Multiply => binary!(Number, *),
                     Divide => binary!(Number, /),
@@ -127,14 +146,18 @@ impl VirtualMachine {
         self.stack[self.stack_top].clone()
     }
 
-    fn peek(&self, distance: usize) -> Value {
-        self.stack[self.stack_top - 1 - distance].clone()
-    }
-
     fn pop_pair(&mut self) -> (Value, Value) {
         let b = self.pop();
         let a = self.pop();
         (a, b)
+    }
+
+    fn peek(&self, distance: usize) -> Value {
+        self.stack[self.stack_top - 1 - distance].clone()
+    }
+
+    fn peek_pair(&self) -> (Value, Value) {
+        (self.peek(1), self.peek(0))
     }
 
     fn error(&mut self, message: &str) {
