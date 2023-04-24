@@ -66,18 +66,21 @@ impl From<TokenType> for Rule {
             LeftParen => (ParseFn::Grouping, ParseFn::Null, Precedence::Min),
 
             Bang => (ParseFn::Unary, ParseFn::Null, Precedence::Min),
-            BangEqual => (ParseFn::Null, ParseFn::Binary, Precedence::Equality),
+
+            BangEqual | EqualEqual => (ParseFn::Null, ParseFn::Binary, Precedence::Equality),
+            Greater | GreaterEqual | Less | LessEqual => {
+                (ParseFn::Null, ParseFn::Binary, Precedence::Comparison)
+            }
 
             Minus => (ParseFn::Unary, ParseFn::Binary, Precedence::Term),
             Plus => (ParseFn::Null, ParseFn::Binary, Precedence::Term),
 
-            Star => (ParseFn::Null, ParseFn::Binary, Precedence::Factor),
-            Slash => (ParseFn::Null, ParseFn::Binary, Precedence::Factor),
+            Star | Slash => (ParseFn::Null, ParseFn::Binary, Precedence::Factor),
 
             Number => (ParseFn::Num, ParseFn::Null, Precedence::Min),
 
             Nil | True | False => (ParseFn::Literal, ParseFn::Null, Precedence::Min),
-            
+
             _ => (ParseFn::Null, ParseFn::Null, Precedence::Min),
         };
 

@@ -134,16 +134,29 @@ impl Compiler {
 
         self.precedence(prec);
 
-        let opcode = match operator {
-            TokenType::Plus => Instruction::Add,
-            TokenType::Minus => Instruction::Subtract,
-            TokenType::Star => Instruction::Multiply,
-            TokenType::Slash => Instruction::Divide,
+        match operator {
+            TokenType::EqualEqual => self.emit(Instruction::Equal),
+            TokenType::BangEqual => {
+                self.emit(Instruction::Equal);
+                self.emit(Instruction::Not);
+            }
+            TokenType::Greater => self.emit(Instruction::Greater),
+            TokenType::GreaterEqual => {
+                self.emit(Instruction::Less);
+                self.emit(Instruction::Not);
+            }
+            TokenType::Less => self.emit(Instruction::Less),
+            TokenType::LessEqual => {
+                self.emit(Instruction::Greater);
+                self.emit(Instruction::Not);
+            }
+            TokenType::Plus => self.emit(Instruction::Add),
+            TokenType::Minus => self.emit(Instruction::Subtract),
+            TokenType::Star => self.emit(Instruction::Multiply),
+            TokenType::Slash => self.emit(Instruction::Divide),
 
             _ => unreachable!()
-        };
-
-        self.emit(opcode);
+        }
     }
 
     fn emit(&mut self, opcode: Instruction) {
@@ -154,14 +167,10 @@ impl Compiler {
         self.chunk.write_byte(byte, self.previous.line());
     }
 
-    fn emit_pair(&mut self, opcode: Instruction, operand: u8) {
-        self.emit(opcode);
-        self.emit_byte(operand);
-    }
-
     fn emit_constant(&mut self, value: Value) {
         let constant = self.make_constant(value);
-        self.emit_pair(Instruction::Constant, constant);
+        self.emit(Instruction::Constant);
+        self.emit_byte(constant);
     }
 
     fn make_constant(&mut self, value: Value) -> u8 {

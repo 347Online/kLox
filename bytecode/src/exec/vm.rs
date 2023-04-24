@@ -71,6 +71,14 @@ impl VirtualMachine {
                         True => self.push(Value::Boolean(true)),
                         False => self.push(Value::Boolean(false)),
 
+                        Equal => {
+                            let (a, b) = self.pop_pair();
+                            self.push(Value::Boolean(a == b))
+                        }
+
+                        Greater => binary!(Boolean, >),
+                        Less => binary!(Boolean, <),
+
                         Add => binary!(Number, +),
                         Subtract => binary!(Number, -),
                         Multiply => binary!(Number, *),

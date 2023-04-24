@@ -9,6 +9,10 @@ pub enum Instruction {
     True,
     False,
 
+    Equal,
+    Greater,
+    Less,
+
     Add,
     Subtract,
     Multiply,
