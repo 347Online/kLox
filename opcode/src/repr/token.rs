@@ -51,7 +51,7 @@ pub enum TokenType {
     Error,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     kind: TokenType,
     lexeme: String,
@@ -81,7 +81,7 @@ impl Default for Token {
         Token {
             kind: TokenType::Nil,
             lexeme: String::from(""),
-            line: 1,
+            line: 0,
         }
     }
 }

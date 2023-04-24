@@ -1,89 +1,106 @@
-use super::{instruction::Instruction, value::Value};
+use std::fmt::Debug;
 
-#[derive(Default, Debug)]
+use super::{opcode::Instruction, value::Value};
+
+#[derive(Debug)]
 pub struct Chunk {
-    code: Vec<Instruction>,
-    constants: Vec<Value>,
+    code: Vec<u8>,
     lines: Vec<usize>,
+    constants: Vec<Value>,
 }
 
 impl Chunk {
     pub fn new() -> Self {
         Chunk {
-            constants: vec![],
             code: vec![],
             lines: vec![],
+            constants: vec![],
         }
-    }
-
-    pub fn instructions(&self) -> &Vec<Instruction> {
-        &self.code
-    }
-
-    pub fn read_constant(&self, index: usize) -> Value {
-        self.constants[index]
     }
 
     pub fn write(&mut self, instruction: Instruction, line: usize) {
-        self.code.push(instruction);
-        self.lines.push(line); // TODO: This is "hilariously wasteful" of memory
+        self.write_byte(instruction as u8, line);
+    }
+
+    pub fn write_byte(&mut self, byte: u8, line: usize) {
+        self.code.push(byte);
+        self.lines.push(line);
     }
 
     pub fn add_constant(&mut self, value: Value) -> usize {
-        let len = self.constants.len();
         self.constants.push(value);
-        len
+        self.constants.len() - 1
     }
 
-    #[cfg(debug_assertions)]
-    pub fn disassemble(&self, name: &str) -> String {
-        let mut chunk = format!("== {} ==", name);
-        let mut offset = 0;
-        for (i, instruction) in self.code.iter().enumerate() {
-            let (instruction, len) = self.disassemble_instruction(instruction);
+    pub fn read(&self, offset: usize) -> Option<u8> {
+        self.code.get(offset).cloned()
+    }
 
-            let line = if i > 0 && self.lines[i] == self.lines[i - 1] {
-                String::from("   |")
-            } else {
-                format!("{:>4}", self.lines[i])
-            };
-            chunk.push_str(&format!("\n{:04}  {} {}", offset, line, instruction));
-            offset += len
+    pub fn read_constant(&self, index: u8) -> Option<Value> {
+        self.constants.get(index as usize).cloned()
+    }
+
+    pub fn line(&self, pos: i32) -> usize {
+        if pos.is_negative() {
+            let len = self.lines.len();
+            self.lines[len - pos.unsigned_abs() as usize]
+        } else {
+            self.lines[pos as usize]
         }
+    }
+}
 
-        chunk
+impl Default for Chunk {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(debug_assertions)]
+impl Chunk {
+    pub fn disassemble(&self, name: &str) {
+        println!("== {} ==", name);
+
+        let mut offset = 0;
+        while let Some(byte) = self.read(offset) {
+            offset = self.disassemble_instruction(byte, offset);
+        }
     }
 
-    #[cfg(debug_assertions)]
-    pub fn disassemble_instruction(&self, instruction: &Instruction) -> (String, usize) {
+    pub fn disassemble_instruction(&self, byte: u8, offset: usize) -> usize {
+        use crate::repr::error::LoxResult;
         use Instruction::*;
 
-        macro_rules! simple {
-            () => {
-                format!("{:?}", instruction)
-            };
-        }
+        let maybe_instruction: LoxResult<Instruction> = byte.try_into();
 
-        const WIDTH: usize = 16;
+        match maybe_instruction {
+            Ok(instruction) => {
+                print!("{:04} ", offset);
+                if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
+                    print!("   | ")
+                } else {
+                    print!("{:>4} ", self.lines[offset])
+                };
 
-        let len = instruction.as_bytes().len();
+                match instruction {
+                    Constant => {
+                        let index = self.code[offset + 1];
+                        let constant = self.constants[index as usize];
+                        println!("{:<16} {:>4} '{}'", "Constant", index, constant);
+                        offset + 2
+                    }
 
-        let repr = match instruction {
-            Return => simple!(),
-
-            Add => simple!(),
-            Subtract => simple!(),
-            Multiply => simple!(),
-            Divide => simple!(),
-
-            Negate => simple!(),
-
-            Constant(index) => {
-                let constant = &self.constants[*index as usize];
-                format!("{:<WIDTH$} {:>4} '{}'", "Constant", index, constant)
+                    _ => {
+                        println!("{:?}", instruction);
+                        offset + 1
+                    }
+                }
             }
-        };
 
-        (repr, len)
+            Err(e) => {
+                println!("{e}");
+                offset + 1
+            }
+        }
     }
 }

@@ -1,23 +1,18 @@
 pub mod exec;
-pub mod lox;
 pub mod repr;
 
-use std::{
-    fs::read_to_string,
-    io::{stdin, stdout, ErrorKind, Write},
-};
+use std::io::Write;
 
-use repr::error::LoxResult;
+use exec::vm::VirtualMachine;
+use repr::error::{LoxError, LoxResult};
 
-use crate::exec::vm::VirtualMachine;
+pub fn repl() -> LoxResult<()> {
+    prompt();
 
-pub fn run_prompt() {
+    let stdin = std::io::stdin();
+    let mut stdout = std::io::stdout();
+
     let mut vm = VirtualMachine::new();
-
-    println!("klox, yet another Lox implementation, Katie Janzen 2023");
-
-    let stdin = stdin();
-    let mut stdout = stdout();
 
     loop {
         print!("> ");
@@ -29,19 +24,18 @@ pub fn run_prompt() {
         if line.is_empty() {
             break;
         }
-
-        // TODO: Handle result
-        let result = run(&line, &mut vm);
+        let _ = vm.interpret(&line);
     }
+
+    Ok(())
 }
 
-pub fn run_file(path: &str) {
-    let code = match read_to_string(path) {
+pub fn run_file(path: &str) -> LoxResult<()> {
+    let code = match std::fs::read_to_string(path) {
         Ok(code) => code,
         Err(error) => match error.kind() {
-            ErrorKind::NotFound => {
-                eprintln!("File '{}' not found", path);
-                return;
+            std::io::ErrorKind::NotFound => {
+                return Err(LoxError::FileNotFoundError(path.to_string()));
             }
 
             _ => panic!("An error occurred: {}", error),
@@ -49,10 +43,10 @@ pub fn run_file(path: &str) {
     };
 
     let mut vm = VirtualMachine::new();
-    // TODO: Handle result
-    let result = run(&code, &mut vm);
+    vm.interpret(&code)
 }
 
-pub fn run(source: &str, vm: &mut VirtualMachine) -> LoxResult<()> {
-    vm.interpret(source)
+fn prompt() {
+    let v = env!("CARGO_PKG_VERSION");
+    println!("klox v{v}")
 }

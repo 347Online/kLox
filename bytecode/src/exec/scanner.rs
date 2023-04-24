@@ -9,7 +9,6 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(source: &str) -> Self {
         let source = source.chars().collect();
-
         Scanner {
             source,
             current: 0,
@@ -18,16 +17,14 @@ impl Scanner {
     }
 
     pub fn scan(&mut self) -> Token {
-        use TokenType::*;
-
         self.skip_whitespace();
-        
-        if self.is_at_end() {
-            return self.create_token(Eof, "");
+        if self.at_end() {
+            return self.finish();
         }
 
         let c = self.advance();
 
+        use TokenType::*;
         let kind = match c {
             '(' => LeftParen,
             ')' => RightParen,
@@ -55,102 +52,25 @@ impl Scanner {
             _ => return self.error("Unexpected character."),
         };
 
-        self.create_token(kind, c)
+        self.create(kind, c)
     }
 
-    pub fn line(&self) -> usize {
-        self.line
+    fn advance(&mut self) -> char {
+        self.current += 1;
+        self.source[self.current - 1]
     }
 
-    fn ident(&mut self, first: char) -> Token {
-        let mut lexeme = String::from(first);
-
-        while let Some(c) = self.peek() {
-            if c == '_' || c.is_ascii_alphanumeric() {
-                lexeme.push(c);
-                self.advance();
-            } else {
-                break;
-            }
-        }
-
-        self.create_token(self.ident_type(&lexeme), lexeme)
+    fn peek(&self) -> Option<char> {
+        self.source.get(self.current).cloned()
     }
 
-    fn ident_type(&self, lexeme: &str) -> TokenType {
-        use TokenType::*;
-
-        match lexeme {
-            "and" => And,
-            "class" => Class,
-            "else" => Else,
-            "false" => False,
-            "fun" => Fun,
-            "for" => For,
-            "if" => If,
-            "nil" => Nil,
-            "or" => Or,
-            "print" => Print,
-            "return" => Return,
-            "super" => Super,
-            "this" => This,
-            "true" => True,
-            "var" => Var,
-            "while" => While,
-
-            _ => Identifier,
-        }
+    fn peek_next(&self) -> Option<char> {
+        self.source.get(self.current + 1).cloned()
     }
 
-    fn number(&mut self, first: char) -> Token {
-        let mut lexeme = String::from(first);
-        macro_rules! digits {
-            () => {
-                while let Some(c) = self.peek() {
-                    if c.is_ascii_digit() {
-                        lexeme.push(self.advance());
-                    } else {
-                        break;
-                    }
-                }
-            };
-        }
-
-        digits!();
-
-        if let Some('.') = self.peek() {
-            if let Some(d) = self.peek_next() {
-                if d.is_ascii_digit() {
-                    lexeme.push(self.advance());
-                    digits!();
-                }
-            }
-        }
-
-        self.create_token(TokenType::Number, lexeme)
-    }
-
-    fn string(&mut self) -> Token {
-        let mut lexeme = String::new();
-        while self.peek() != Some('"') && !self.is_at_end() {
-            if self.peek() == Some('\n') {
-                self.line += 1;
-            }
-            let c = self.advance();
-            lexeme.push(c);
-        }
-
-        if self.is_at_end() {
-            return self.error("Unterminated string.");
-        }
-
-        self.advance();
-        self.create_token(TokenType::String, lexeme)
-    }
-
-    fn match_next(&mut self, c: char, a: TokenType, b: TokenType) -> TokenType {
-        if self.peek() == Some(c) {
-            self.advance();
+    fn match_next(&mut self, expected: char, a: TokenType, b: TokenType) -> TokenType {
+        if self.peek() == Some(expected) && !self.at_end() {
+            self.current += 1;
             a
         } else {
             b
@@ -183,29 +103,111 @@ impl Scanner {
         }
     }
 
-    fn advance(&mut self) -> char {
-        self.current += 1;
-        self.source[self.current - 1]
+    fn string(&mut self) -> Token {
+        let mut lexeme = String::new();
+        while let Some(c) = self.peek() {
+            if c == '"' {
+                break;
+            }
+
+            if c == '\n' {
+                self.line += 1;
+            }
+
+            let c = self.advance();
+            lexeme.push(c);
+        }
+
+        if self.at_end() {
+            return self.error("Unterminated string.");
+        }
+
+        self.advance();
+        self.create(TokenType::String, lexeme)
     }
 
-    fn peek(&self) -> Option<char> {
-        self.source.get(self.current).cloned()
+    fn number(&mut self, first: char) -> Token {
+        let mut lexeme = String::from(first);
+        macro_rules! digits {
+            () => {
+                while let Some(c) = self.peek() {
+                    if c.is_ascii_digit() {
+                        lexeme.push(self.advance());
+                    } else {
+                        break;
+                    }
+                }
+            };
+        }
+
+        digits!();
+
+        if let Some('.') = self.peek() {
+            if let Some(d) = self.peek_next() {
+                if d.is_ascii_digit() {
+                    lexeme.push(self.advance());
+                    digits!();
+                }
+            }
+        }
+
+        self.create(TokenType::Number, lexeme)
     }
 
-    fn peek_next(&self) -> Option<char> {
-        self.source.get(self.current + 1).cloned()
+    fn ident(&mut self, first: char) -> Token {
+        let mut lexeme = String::from(first);
+
+        while let Some(c) = self.peek() {
+            if c == '_' || c.is_ascii_alphanumeric() {
+                lexeme.push(c);
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let ident = self.ident_type(&lexeme);
+        self.create(ident, lexeme)
     }
 
-    fn is_at_end(&self) -> bool {
-        self.current >= self.source.len()
+    fn ident_type(&self, lexeme: &str) -> TokenType {
+        use TokenType::*;
+
+        match lexeme {
+            "and" => And,
+            "class" => Class,
+            "else" => Else,
+            "false" => False,
+            "fun" => Fun,
+            "for" => For,
+            "if" => If,
+            "nil" => Nil,
+            "or" => Or,
+            "print" => Print,
+            "return" => Return,
+            "super" => Super,
+            "this" => This,
+            "true" => True,
+            "var" => Var,
+            "while" => While,
+
+            _ => Identifier,
+        }
+    }
+
+    fn create<S: Into<String>>(&self, kind: TokenType, lexeme: S) -> Token {
+        Token::new(kind, lexeme.into(), self.line)
+    }
+
+    fn finish(&self) -> Token {
+        self.create(TokenType::Eof, "")
     }
 
     fn error(&self, message: &str) -> Token {
-        self.create_token(TokenType::Error, message)
+        self.create(TokenType::Error, message)
     }
 
-    fn create_token<S: Into<String>>(&self, kind: TokenType, lexeme: S) -> Token {
-        let lexeme = lexeme.into();
-        Token::new(kind, lexeme, self.line)
+    fn at_end(&self) -> bool {
+        self.peek().is_none()
     }
 }
