@@ -100,6 +100,11 @@ impl Compiler {
         self.emit_constant(Value::Number(value));
     }
 
+    fn string(&mut self) {
+        let value = Value::String(Box::new(self.previous.lexeme()));
+        self.emit_constant(value);
+    }
+
     fn literal(&mut self) {
         let opcode = match self.previous.kind() {
             TokenType::Nil => Instruction::Nil,
@@ -208,7 +213,8 @@ impl Compiler {
             ParseFn::Unary => self.unary(),
             ParseFn::Binary => self.binary(),
             ParseFn::Grouping => self.grouping(),
-            ParseFn::Num => self.number(),
+            ParseFn::Number => self.number(),
+            ParseFn::String => self.string(),
             ParseFn::Null => (),
         }
     }

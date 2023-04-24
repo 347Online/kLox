@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
+    String(Box<String>),
     Number(f64),
     Boolean(bool),
     Nil,
@@ -19,6 +20,7 @@ impl Display for Value {
             Value::Number(number) => number.to_string(),
             Value::Boolean(boolean) => boolean.to_string(),
             Value::Nil => String::from("nil"),
+            Value::String(string) => format!("\"{}\"", *string),
         };
 
         write!(f, "{}", repr)

@@ -85,7 +85,7 @@ impl Chunk {
                 match instruction {
                     Constant => {
                         let index = self.code[offset + 1];
-                        let constant = self.constants[index as usize];
+                        let constant = self.constants[index as usize].clone();
                         println!("{:<16} {:>4} '{}'", "Constant", index, constant);
                         offset + 2
                     }

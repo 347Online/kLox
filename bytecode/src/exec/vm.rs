@@ -8,6 +8,7 @@ use crate::repr::{
 use super::compiler::Compiler;
 
 const STACK_MAX: usize = 256;
+const STACK_INIT: Value = Value::Nil;
 
 pub struct VirtualMachine {
     ip: usize,
@@ -21,7 +22,7 @@ impl VirtualMachine {
         VirtualMachine {
             ip: 0,
             chunk: Chunk::new(),
-            stack: [Value::Nil; STACK_MAX],
+            stack: [STACK_INIT; STACK_MAX],
             stack_top: 0,
         }
     }
@@ -123,11 +124,11 @@ impl VirtualMachine {
 
     fn pop(&mut self) -> Value {
         self.stack_top -= 1;
-        self.stack[self.stack_top]
+        self.stack[self.stack_top].clone()
     }
 
     fn peek(&self, distance: usize) -> Value {
-        self.stack[self.stack_top - 1 - distance]
+        self.stack[self.stack_top - 1 - distance].clone()
     }
 
     fn pop_pair(&mut self) -> (Value, Value) {
