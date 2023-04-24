@@ -39,6 +39,15 @@ impl Chunk {
     pub fn read_constant(&self, index: u8) -> Option<Value> {
         self.constants.get(index as usize).cloned()
     }
+
+    pub fn line(&self, pos: i32) -> usize {
+        if pos.is_negative() {
+            let len = self.lines.len();
+            self.lines[len - pos.unsigned_abs() as usize]
+        } else {
+            self.lines[pos as usize]
+        }
+    }
 }
 
 impl Default for Chunk {

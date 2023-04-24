@@ -1,6 +1,6 @@
 use crate::repr::{
     chunk::Chunk,
-    error::{LoxResult, LoxError},
+    error::{LoxError, LoxResult},
     opcode::Instruction,
     value::Value,
 };
@@ -43,70 +43,59 @@ impl VirtualMachine {
 
             let maybe_instruction: LoxResult<Instruction> = byte.try_into();
 
-            match maybe_instruction {
-                Ok(instruction) => {
-                    use Instruction::*;
-
-                    macro_rules! binary {
-                        ($kind:ident, $op:tt) => {{
-                            // let (a, b) = self.pop_pair();
-                            // self.push($kind(a $op b));
-                            if let (Value::Number(a), Value::Number(b)) = (self.peek(1), self.peek(0)) {
-                                self.pop_pair();
-                                self.push(Value::$kind(a $op b));
-                            } else {
-                                self.error("Operands must be numbers.");
-                                return Err(LoxError::RuntimeError)
-                            }
-                        }};
+            if let Ok(instruction) = maybe_instruction {
+                macro_rules! binary {
+                    ($kind:ident, $op:tt) => {{
+                        if let (Value::Number(a), Value::Number(b)) = (self.peek(1), self.peek(0)) {
+                            self.pop_pair();
+                            self.push(Value::$kind(a $op b));
+                        } else {
+                            self.error("Operands must be numbers.");
+                            return Err(LoxError::RuntimeError)
+                        }
+                    }};
+                }
+                
+                use Instruction::*;
+                match instruction {
+                    Constant => {
+                        let constant = self.read_constant();
+                        self.push(constant);
                     }
 
-                    match instruction {
-                        Constant => {
-                            let constant = self.read_constant();
-                            self.push(constant);
+                    Nil => self.push(Value::Nil),
+                    True => self.push(Value::Boolean(true)),
+                    False => self.push(Value::Boolean(false)),
+
+                    Equal => binary!(Boolean, ==),
+                    Greater => binary!(Boolean, >),
+                    Less => binary!(Boolean, <),
+
+                    Add => binary!(Number, +),
+                    Subtract => binary!(Number, -),
+                    Multiply => binary!(Number, *),
+                    Divide => binary!(Number, /),
+
+                    Not => {
+                        let a = self.pop().truthy();
+                        self.push(Value::Boolean(!a));
+                    }
+
+                    Negate => {
+                        if let Value::Number(a) = self.peek(0) {
+                            self.pop();
+                            self.push(Value::Number(-a));
+                        } else {
+                            self.error("Operand must be a number");
+                            return Err(LoxError::RuntimeError);
                         }
+                    }
 
-                        Nil => self.push(Value::Nil),
-                        True => self.push(Value::Boolean(true)),
-                        False => self.push(Value::Boolean(false)),
-
-                        Equal => {
-                            let (a, b) = self.pop_pair();
-                            self.push(Value::Boolean(a == b))
-                        }
-
-                        Greater => binary!(Boolean, >),
-                        Less => binary!(Boolean, <),
-
-                        Add => binary!(Number, +),
-                        Subtract => binary!(Number, -),
-                        Multiply => binary!(Number, *),
-                        Divide => binary!(Number, /),
-
-                        Not => {
-                            let a = self.pop().truthy();
-                            self.push(Value::Boolean(!a));
-                        }
-                        
-                        Negate => {
-                            if let Value::Number(a) = self.peek(0) {
-                                self.pop();
-                                self.push(Value::Number(-a));
-                            } else {
-                                self.error("Operand must be a number");
-                                return Err(LoxError::RuntimeError)
-                            }
-                        },
-
-                        Return => {
-                            println!("{}", self.pop());
-                            return Ok(());
-                        }
+                    Return => {
+                        println!("{}", self.pop());
+                        return Ok(());
                     }
                 }
-
-                Err(e) => println!("{e}"),
             }
         }
     }
@@ -148,7 +137,12 @@ impl VirtualMachine {
     }
 
     fn error(&mut self, message: &str) {
-        eprintln!("{}", message)
+        // Something something variadic? 🤷‍♀️
+        eprintln!("{}", message);
+
+        let line = self.chunk.line(-1);
+        eprintln!("[line {}] in script", line);
+        self.stack_top = 0;
     }
 
     #[cfg(debug_assertions)]

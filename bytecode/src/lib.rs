@@ -35,7 +35,6 @@ pub fn run_file(path: &str) -> LoxResult<()> {
         Ok(code) => code,
         Err(error) => match error.kind() {
             std::io::ErrorKind::NotFound => {
-                // eprintln!("File '{}' not found", path);
                 return Err(LoxError::FileNotFoundError(path.to_string()));
             }
 
@@ -44,7 +43,6 @@ pub fn run_file(path: &str) -> LoxResult<()> {
     };
 
     let mut vm = VirtualMachine::new();
-    // TODO: Handle result
     vm.interpret(&code)
 }
 

@@ -1,6 +1,7 @@
 use super::{error::LoxError, token::TokenType};
 
 #[derive(Debug, Clone, Copy)]
+#[repr(u8)]
 pub enum Precedence {
     Min,
     Assignment,
@@ -21,12 +22,16 @@ impl TryFrom<u8> for Precedence {
     type Error = LoxError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        let prec = match value {
-            0..=MAX_PREC => unsafe { std::mem::transmute(value) },
-            _ => return Err(LoxError::CompileError),
-        };
-
-        Ok(prec)
+        if (0..=MAX_PREC).contains(&value) {
+            // SAFETY:
+            // MAX_PREC is derived from Precedence::Primary, the final variant
+            // Since Instruction is defined as repr(u8), the variants form a contiguous range
+            // any u8 value less than or equal to Precedence::Primary as u8 is valid
+            let prec = unsafe { std::mem::transmute(value) };
+            Ok(prec)
+        } else {
+            Err(LoxError::CompileError)
+        }
     }
 }
 
