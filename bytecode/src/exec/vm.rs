@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::repr::{
     chunk::Chunk,
     error::{LoxError, LoxResult},
@@ -15,6 +17,7 @@ pub struct VirtualMachine {
     chunk: Chunk,
     stack: [Value; STACK_MAX],
     stack_top: usize,
+    globals: HashMap<String, Value>,
 }
 
 impl VirtualMachine {
@@ -24,6 +27,7 @@ impl VirtualMachine {
             chunk: Chunk::new(),
             stack: [STACK_INIT; STACK_MAX],
             stack_top: 0,
+            globals: HashMap::new(),
         }
     }
 
@@ -110,9 +114,26 @@ impl VirtualMachine {
                     }
 
                     Print => println!("{}", self.pop()),
-                    
+
                     Pop => {
                         self.pop();
+                    }
+
+                    DefineGlobal => {
+                        let name = self.read_string();
+                        self.globals.insert(name, self.peek(0));
+                        self.pop();
+                    }
+
+                    GetGlobal => {
+                        let name = self.read_string();
+
+                        if let Some(value) = self.globals.get(&name) {
+                            self.push(value.clone());
+                        } else {
+                            self.error(&format!("Undefined variable '{}'.", name));
+                            return Err(LoxError::RuntimeError)
+                        }
                     }
 
                     Return => return Ok(()),
@@ -135,6 +156,13 @@ impl VirtualMachine {
         self.chunk
             .read_constant(index)
             .expect("VM Read Constant Out of Bounds")
+    }
+
+    fn read_string(&mut self) -> String {
+        let Value::String(name) = self.read_constant() else {
+            panic!("Failed to grab a string from constant table")
+        };
+        *name
     }
 
     fn push(&mut self, value: Value) {

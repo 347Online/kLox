@@ -24,6 +24,9 @@ pub enum Instruction {
     Print,
     Pop,
     
+    DefineGlobal,
+    GetGlobal,
+    
     Return,
 }
 

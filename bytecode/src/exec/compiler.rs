@@ -103,11 +103,43 @@ impl Compiler {
     }
 
     fn declaration(&mut self) {
-        self.statement();
+        if self.catch(TokenType::Var) {
+            self.var_declaration();
+        } else {
+            self.statement();
+        }
 
         if self.panic_mode {
             self.synchronize();
         }
+    }
+
+    fn var_declaration(&mut self) {
+        let global = self.parse_variable("Expect variable name");
+
+        if self.catch(TokenType::Equal) {
+            self.expression();
+        } else {
+            self.emit(Instruction::Nil);
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.");
+
+        self.define_variable(global);
+    }
+
+    fn parse_variable(&mut self, message: &str) -> u8 {
+        self.consume(TokenType::Identifier, message);
+        self.indentifier_constant(self.previous.lexeme())
+    }
+
+    fn indentifier_constant(&mut self, name: String) -> u8 {
+        self.make_constant(Value::String(Box::new(name)))
+    }
+
+    fn define_variable(&mut self, global: u8) {
+        self.emit(Instruction::DefineGlobal);
+        self.emit_byte(global);
     }
 
     fn statement(&mut self) {
@@ -173,6 +205,16 @@ impl Compiler {
     fn string(&mut self) {
         let value = Value::String(Box::new(self.previous.lexeme()));
         self.emit_constant(value);
+    }
+
+    fn variable(&mut self) {
+        self.named_variable(self.previous.lexeme());
+    }
+
+    fn named_variable(&mut self, name: String) {
+        let arg = self.indentifier_constant(name);
+        self.emit(Instruction::GetGlobal);
+        self.emit_byte(arg);
     }
 
     fn literal(&mut self) {
@@ -285,6 +327,7 @@ impl Compiler {
             ParseFn::Grouping => self.grouping(),
             ParseFn::Number => self.number(),
             ParseFn::String => self.string(),
+            ParseFn::Variable => self.variable(),
             ParseFn::Null => (),
         }
     }

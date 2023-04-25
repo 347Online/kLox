@@ -43,6 +43,7 @@ pub enum ParseFn {
     Grouping,
     Number,
     String,
+    Variable,
     Null,
 }
 
@@ -77,6 +78,8 @@ impl From<TokenType> for Rule {
             Greater | GreaterEqual | Less | LessEqual => {
                 (ParseFn::Null, ParseFn::Binary, Precedence::Comparison)
             }
+
+            Identifier => (ParseFn::Variable, ParseFn::Null, Precedence::Min),
 
             Minus => (ParseFn::Unary, ParseFn::Binary, Precedence::Term),
             Plus => (ParseFn::Null, ParseFn::Binary, Precedence::Term),
