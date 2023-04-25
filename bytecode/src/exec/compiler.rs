@@ -123,7 +123,10 @@ impl Compiler {
             self.emit(Instruction::Nil);
         }
 
-        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.");
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        );
 
         self.define_variable(global);
     }
@@ -168,7 +171,7 @@ impl Compiler {
                 | TokenType::Print
                 | TokenType::Return => return,
 
-                _ => ()
+                _ => (),
             }
 
             self.advance();
@@ -207,14 +210,21 @@ impl Compiler {
         self.emit_constant(value);
     }
 
-    fn variable(&mut self) {
-        self.named_variable(self.previous.lexeme());
+    fn variable(&mut self, assign: bool) {
+        self.named_variable(self.previous.lexeme(), assign);
     }
 
-    fn named_variable(&mut self, name: String) {
+    fn named_variable(&mut self, name: String, assign: bool) {
         let arg = self.indentifier_constant(name);
-        self.emit(Instruction::GetGlobal);
-        self.emit_byte(arg);
+
+        if assign && self.catch(TokenType::Equal) {
+            self.expression();
+            self.emit(Instruction::SetGlobal);
+            self.emit_byte(arg);
+        } else {
+            self.emit(Instruction::GetGlobal);
+            self.emit_byte(arg);
+        }
     }
 
     fn literal(&mut self) {
@@ -310,16 +320,21 @@ impl Compiler {
             return;
         }
 
-        self.parse(prefix);
+        let assign = prec as u8 <= Precedence::Assignment as u8;
+        self.parse(prefix, assign);
 
         while prec as u8 <= Rule::from(self.current.kind()).prec() as u8 {
             self.advance();
             let infix = Rule::from(self.previous.kind()).infix();
-            self.parse(infix);
+            self.parse(infix, assign);
+        }
+
+        if assign && self.catch(TokenType::Equal) {
+            self.error("Invalid assignment target.");
         }
     }
 
-    fn parse(&mut self, f: ParseFn) {
+    fn parse(&mut self, f: ParseFn, assign: bool) {
         match f {
             ParseFn::Literal => self.literal(),
             ParseFn::Unary => self.unary(),
@@ -327,7 +342,7 @@ impl Compiler {
             ParseFn::Grouping => self.grouping(),
             ParseFn::Number => self.number(),
             ParseFn::String => self.string(),
-            ParseFn::Variable => self.variable(),
+            ParseFn::Variable => self.variable(assign),
             ParseFn::Null => (),
         }
     }

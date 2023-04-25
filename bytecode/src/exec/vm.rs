@@ -125,6 +125,16 @@ impl VirtualMachine {
                         self.pop();
                     }
 
+                    SetGlobal => {
+                        let name = self.read_string();
+
+                        if self.globals.insert(name.clone(), self.peek(0)).is_none() {
+                            self.globals.remove(&name);
+                            self.error(&format!("Undefined variable '{}'", name));
+                            return Err(LoxError::RuntimeError);
+                        }
+                    }
+
                     GetGlobal => {
                         let name = self.read_string();
 
