@@ -76,21 +76,19 @@ impl VirtualMachine {
                         self.push(Value::Boolean(a == b))
                     }
 
-                    Add => {
-                        match self.peek_pair() {
-                            (Value::String(a), Value::String(b)) => {
-                                self.pop_pair();
-                                self.push(Value::String(Box::new(*a + &*b)));
-                            }
-
-                            (Value::Number(a), Value::Number(b)) => {
-                                self.pop_pair();
-                                self.push(Value::Number(a + b));
-                            }
-
-                            _ => self.error("Operands must be two numbers or two strings."),
+                    Add => match self.peek_pair() {
+                        (Value::String(a), Value::String(b)) => {
+                            self.pop_pair();
+                            self.push(Value::String(Box::new(*a + &*b)));
                         }
-                    }
+
+                        (Value::Number(a), Value::Number(b)) => {
+                            self.pop_pair();
+                            self.push(Value::Number(a + b));
+                        }
+
+                        _ => self.error("Operands must be two numbers or two strings."),
+                    },
 
                     Subtract => binary!(Number, -),
                     Multiply => binary!(Number, *),
@@ -111,10 +109,13 @@ impl VirtualMachine {
                         }
                     }
 
-                    Return => {
-                        println!("{}", self.pop());
-                        return Ok(());
+                    Print => println!("{}", self.pop()),
+                    
+                    Pop => {
+                        self.pop();
                     }
+
+                    Return => return Ok(()),
                 }
             }
         }

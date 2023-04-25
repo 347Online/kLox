@@ -40,8 +40,12 @@ impl Compiler {
 
     pub fn compile(&mut self) -> LoxResult<Chunk> {
         self.advance();
-        self.expression();
-        self.consume(TokenType::Eof, "Expect end of expression.");
+        // self.expression();
+        // self.consume(TokenType::Eof, "Expect end of expression.");
+
+        while !self.catch(TokenType::Eof) {
+            self.declaration();
+        }
 
         if self.had_error {
             return Err(LoxError::CompileError);
@@ -76,6 +80,19 @@ impl Compiler {
         }
     }
 
+    fn catch(&mut self, kind: TokenType) -> bool {
+        if !self.check(kind) {
+            false
+        } else {
+            self.advance();
+            true
+        }
+    }
+
+    fn check(&self, kind: TokenType) -> bool {
+        self.current.kind() == kind
+    }
+
     fn consume(&mut self, kind: TokenType, message: &str) {
         if self.current.kind() == kind {
             self.advance();
@@ -85,8 +102,61 @@ impl Compiler {
         self.error_current(message);
     }
 
+    fn declaration(&mut self) {
+        self.statement();
+
+        if self.panic_mode {
+            self.synchronize();
+        }
+    }
+
+    fn statement(&mut self) {
+        if self.catch(TokenType::Print) {
+            self.print();
+        } else {
+            self.expression_statement();
+        }
+    }
+
+    fn synchronize(&mut self) {
+        self.panic_mode = false;
+
+        while self.current.kind() != TokenType::Eof {
+            if self.previous.kind() == TokenType::Semicolon {
+                return;
+            }
+
+            match self.current.kind() {
+                TokenType::Class
+                | TokenType::Fun
+                | TokenType::Var
+                | TokenType::For
+                | TokenType::If
+                | TokenType::While
+                | TokenType::Print
+                | TokenType::Return => return,
+
+                _ => ()
+            }
+
+            self.advance();
+        }
+    }
+
+    fn print(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.emit(Instruction::Print);
+    }
+
     fn expression(&mut self) {
         self.precedence(Precedence::Assignment);
+    }
+
+    fn expression_statement(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after expression.");
+        self.emit(Instruction::Pop);
     }
 
     fn grouping(&mut self) {

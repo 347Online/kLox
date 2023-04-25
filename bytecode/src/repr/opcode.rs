@@ -21,6 +21,9 @@ pub enum Instruction {
     Not,
     Negate,
 
+    Print,
+    Pop,
+    
     Return,
 }
 
