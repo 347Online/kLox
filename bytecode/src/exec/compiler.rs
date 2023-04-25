@@ -326,7 +326,7 @@ impl Compiler {
         while prec as u8 <= Rule::from(self.current.kind()).prec() as u8 {
             self.advance();
             let infix = Rule::from(self.previous.kind()).infix();
-            self.parse(infix, assign);
+            self.parse(infix, false);
         }
 
         if assign && self.catch(TokenType::Equal) {
