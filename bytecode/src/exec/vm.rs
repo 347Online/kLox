@@ -167,6 +167,10 @@ impl VirtualMachine {
                         }
                     }
 
+                    Loop => {
+                        self.ip -= self.read_short() as usize;
+                    }
+
                     Return => return Ok(()),
                 }
             }

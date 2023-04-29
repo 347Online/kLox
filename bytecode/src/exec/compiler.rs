@@ -179,6 +179,8 @@ impl Compiler {
             self.print();
         } else if self.catch(TokenType::If) {
             self.if_statement();
+        } else if self.catch(TokenType::While) {
+            self.while_statement();
         } else if self.catch(TokenType::LeftBrace) {
             self.begin_scope();
             self.block();
@@ -206,6 +208,22 @@ impl Compiler {
         }
 
         self.patch_jump(else_jump);
+    }
+
+    fn while_statement(&mut self) {
+        let loop_start = self.chunk.len();
+
+        self.consume(TokenType::LeftParen, "Expect '(' after 'while'.");
+        self.expression();
+        self.consume(TokenType::RightParen, "Expect ')' after condition.");
+
+        let exit_jump = self.emit_jump(Instruction::JumpIfFalse);
+        self.emit(Instruction::Pop);
+        self.statement();
+        self.emit_loop(loop_start);
+
+        self.patch_jump(exit_jump);
+        self.emit(Instruction::Pop);
     }
 
     fn begin_scope(&mut self) {
@@ -455,6 +473,20 @@ impl Compiler {
         let constant = self.make_constant(value);
         self.emit(Instruction::Constant);
         self.emit_byte(constant);
+    }
+
+    fn emit_loop(&mut self, start: usize) {
+        self.emit(Instruction::Loop);
+
+        let offset = self.chunk.len() - start + 2;
+        if offset > u16::MAX as usize {
+            self.error("Loop body too large.");
+        }
+
+        let [addr_a, addr_b] = (offset as u16).to_be_bytes();
+
+        self.emit_byte(addr_a);
+        self.emit_byte(addr_b);
     }
 
     fn emit_jump(&mut self, kind: Instruction) -> usize {

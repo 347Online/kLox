@@ -33,6 +33,8 @@ pub enum Instruction {
     Jump,
     JumpIfFalse,
 
+    Loop,
+    
     Return,
 }
 
