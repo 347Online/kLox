@@ -21,6 +21,15 @@ pub enum Instruction {
     Not,
     Negate,
 
+    Print,
+    Pop,
+
+    DefineGlobal,
+    GetLocal,
+    SetLocal,
+    SetGlobal,
+    GetGlobal,
+
     Return,
 }
 

@@ -41,7 +41,9 @@ pub enum ParseFn {
     Unary,
     Binary,
     Grouping,
-    Num,
+    Number,
+    String,
+    Variable,
     Null,
 }
 
@@ -77,12 +79,16 @@ impl From<TokenType> for Rule {
                 (ParseFn::Null, ParseFn::Binary, Precedence::Comparison)
             }
 
+            Identifier => (ParseFn::Variable, ParseFn::Null, Precedence::Min),
+
             Minus => (ParseFn::Unary, ParseFn::Binary, Precedence::Term),
             Plus => (ParseFn::Null, ParseFn::Binary, Precedence::Term),
 
             Star | Slash => (ParseFn::Null, ParseFn::Binary, Precedence::Factor),
 
-            Number => (ParseFn::Num, ParseFn::Null, Precedence::Min),
+            Number => (ParseFn::Number, ParseFn::Null, Precedence::Min),
+
+            String => (ParseFn::String, ParseFn::Null, Precedence::Min),
 
             Nil | True | False => (ParseFn::Literal, ParseFn::Null, Precedence::Min),
 

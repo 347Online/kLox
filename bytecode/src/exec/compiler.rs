@@ -9,6 +9,17 @@ use crate::repr::{
 
 use super::scanner::Scanner;
 
+struct LocalSlot {
+    name: String,
+    depth: isize,
+}
+
+const LOCALS_MAX: usize = crate::U8_COUNT;
+const LOCAL_INIT: LocalSlot = LocalSlot {
+    name: String::new(),
+    depth: -2,
+};
+
 pub struct Compiler {
     scanner: Scanner,
     previous: Token,
@@ -18,6 +29,10 @@ pub struct Compiler {
     panic_mode: bool,
 
     chunk: Chunk,
+
+    locals: [LocalSlot; LOCALS_MAX],
+    local_count: usize,
+    scope_depth: isize,
 }
 
 impl Compiler {
@@ -35,13 +50,19 @@ impl Compiler {
             panic_mode: false,
 
             chunk: Chunk::new(),
+
+            locals: [LOCAL_INIT; LOCALS_MAX],
+            local_count: 0,
+            scope_depth: 0,
         }
     }
 
     pub fn compile(&mut self) -> LoxResult<Chunk> {
         self.advance();
-        self.expression();
-        self.consume(TokenType::Eof, "Expect end of expression.");
+
+        while !self.catch(TokenType::Eof) {
+            self.declaration();
+        }
 
         if self.had_error {
             return Err(LoxError::CompileError);
@@ -76,6 +97,19 @@ impl Compiler {
         }
     }
 
+    fn catch(&mut self, kind: TokenType) -> bool {
+        if !self.check(kind) {
+            false
+        } else {
+            self.advance();
+            true
+        }
+    }
+
+    fn check(&self, kind: TokenType) -> bool {
+        self.current.kind() == kind
+    }
+
     fn consume(&mut self, kind: TokenType, message: &str) {
         if self.current.kind() == kind {
             self.advance();
@@ -85,8 +119,182 @@ impl Compiler {
         self.error_current(message);
     }
 
+    fn declaration(&mut self) {
+        if self.catch(TokenType::Var) {
+            self.var_declaration();
+        } else {
+            self.statement();
+        }
+
+        if self.panic_mode {
+            self.synchronize();
+        }
+    }
+
+    fn var_declaration(&mut self) {
+        let global = self.parse_variable("Expect variable name");
+
+        if self.catch(TokenType::Equal) {
+            self.expression();
+        } else {
+            self.emit(Instruction::Nil);
+        }
+
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        );
+
+        self.define_variable(global);
+    }
+
+    fn parse_variable(&mut self, message: &str) -> u8 {
+        self.consume(TokenType::Identifier, message);
+
+        self.declare_variable();
+
+        self.indentifier_constant(self.previous.lexeme())
+    }
+
+    fn indentifier_constant(&mut self, name: String) -> u8 {
+        self.make_constant(Value::String(Box::new(name)))
+    }
+
+    fn define_variable(&mut self, global: u8) {
+        if self.scope_depth > 0 {
+            self.initialize();
+            return;
+        }
+
+        self.emit(Instruction::DefineGlobal);
+        self.emit_byte(global);
+    }
+
+    fn initialize(&mut self) {
+        self.locals[self.local_count - 1].depth = self.scope_depth;
+    }
+
+    fn statement(&mut self) {
+        if self.catch(TokenType::Print) {
+            self.print();
+        } else if self.catch(TokenType::LeftBrace) {
+            self.begin_scope();
+            self.block();
+            self.end_scope();
+        } else {
+            self.expression_statement();
+        }
+    }
+
+    fn begin_scope(&mut self) {
+        self.scope_depth += 1;
+    }
+
+    fn end_scope(&mut self) {
+        self.scope_depth -= 1;
+
+        while self.local_count > 0 && self.locals[self.local_count - 1].depth > self.scope_depth {
+            self.emit(Instruction::Pop);
+            self.local_count -= 1;
+        }
+    }
+
+    fn block(&mut self) {
+        while !self.check(TokenType::RightBrace) && !self.check(TokenType::Eof) {
+            self.declaration();
+        }
+
+        self.consume(TokenType::RightBrace, "Expect '}' after block.");
+    }
+
+    fn declare_variable(&mut self) {
+        if self.scope_depth == 0 {
+            return;
+        }
+
+        let name = self.previous.lexeme();
+
+        for i in (0..self.local_count).rev() {
+            let local = &self.locals[i];
+
+            if local.depth != -1 && local.depth < self.scope_depth {
+                break;
+            }
+
+            if name == local.name {
+                self.error("Already a variable with this name in this scope.");
+            }
+        }
+
+        self.add_local(name);
+    }
+
+    fn add_local(&mut self, name: String) {
+        if self.local_count == LOCALS_MAX {
+            self.error("Too many local variables in function.");
+            return;
+        }
+
+        let local = &mut self.locals[self.local_count];
+        self.local_count += 1;
+
+        local.name = name;
+        local.depth = -1;
+    }
+
+    fn resolve_local(&mut self, name: &String) -> Option<u8> {
+        for i in (0..self.local_count).rev() {
+            let local = &self.locals[i];
+            if name == &local.name {
+                if local.depth == -1 {
+                    self.error("Can't read local variable in its own initializer.");
+                }
+                return Some(i as u8);
+            }
+        }
+
+        None
+    }
+
+    fn synchronize(&mut self) {
+        self.panic_mode = false;
+
+        while self.current.kind() != TokenType::Eof {
+            if self.previous.kind() == TokenType::Semicolon {
+                return;
+            }
+
+            match self.current.kind() {
+                TokenType::Class
+                | TokenType::Fun
+                | TokenType::Var
+                | TokenType::For
+                | TokenType::If
+                | TokenType::While
+                | TokenType::Print
+                | TokenType::Return => return,
+
+                _ => (),
+            }
+
+            self.advance();
+        }
+    }
+
+    fn print(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.emit(Instruction::Print);
+    }
+
     fn expression(&mut self) {
         self.precedence(Precedence::Assignment);
+    }
+
+    fn expression_statement(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after expression.");
+        self.emit(Instruction::Pop);
     }
 
     fn grouping(&mut self) {
@@ -98,6 +306,39 @@ impl Compiler {
         let lexeme = self.previous.lexeme();
         let value: f64 = lexeme.parse().expect("Failed to parse lexeme as number");
         self.emit_constant(Value::Number(value));
+    }
+
+    fn string(&mut self) {
+        let value = Value::String(Box::new(self.previous.lexeme()));
+        self.emit_constant(value);
+    }
+
+    fn variable(&mut self, assign: bool) {
+        self.named_variable(self.previous.lexeme(), assign);
+    }
+
+    fn named_variable(&mut self, name: String, assign: bool) {
+        let get_op: Instruction;
+        let set_op: Instruction;
+
+        let arg = if let Some(byte) = self.resolve_local(&name) {
+            get_op = Instruction::GetLocal;
+            set_op = Instruction::SetLocal;
+            byte
+        } else {
+            get_op = Instruction::GetGlobal;
+            set_op = Instruction::SetGlobal;
+            self.indentifier_constant(name)
+        };
+
+        if assign && self.catch(TokenType::Equal) {
+            self.expression();
+            self.emit(set_op);
+            self.emit_byte(arg);
+        } else {
+            self.emit(get_op);
+            self.emit_byte(arg);
+        }
     }
 
     fn literal(&mut self) {
@@ -193,22 +434,29 @@ impl Compiler {
             return;
         }
 
-        self.parse(prefix);
+        let assign = prec as u8 <= Precedence::Assignment as u8;
+        self.parse(prefix, assign);
 
         while prec as u8 <= Rule::from(self.current.kind()).prec() as u8 {
             self.advance();
             let infix = Rule::from(self.previous.kind()).infix();
-            self.parse(infix);
+            self.parse(infix, false);
+        }
+
+        if assign && self.catch(TokenType::Equal) {
+            self.error("Invalid assignment target.");
         }
     }
 
-    fn parse(&mut self, f: ParseFn) {
+    fn parse(&mut self, f: ParseFn, assign: bool) {
         match f {
             ParseFn::Literal => self.literal(),
             ParseFn::Unary => self.unary(),
             ParseFn::Binary => self.binary(),
             ParseFn::Grouping => self.grouping(),
-            ParseFn::Num => self.number(),
+            ParseFn::Number => self.number(),
+            ParseFn::String => self.string(),
+            ParseFn::Variable => self.variable(assign),
             ParseFn::Null => (),
         }
     }

@@ -83,10 +83,16 @@ impl Chunk {
                 };
 
                 match instruction {
-                    Constant => {
+                    Constant | DefineGlobal | SetGlobal | GetGlobal => {
                         let index = self.code[offset + 1];
-                        let constant = self.constants[index as usize];
-                        println!("{:<16} {:>4} '{}'", "Constant", index, constant);
+                        let constant = self.constants[index as usize].clone();
+                        println!("{:<16?} {:>4} '{}'", self, index, constant);
+                        offset + 2
+                    }
+
+                    GetLocal | SetLocal => {
+                        let slot = self.code[offset + 1];
+                        println!("{:<16?} {:>4}", self, slot);
                         offset + 2
                     }
 

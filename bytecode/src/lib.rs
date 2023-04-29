@@ -6,6 +6,8 @@ use std::io::Write;
 use exec::vm::VirtualMachine;
 use repr::error::{LoxError, LoxResult};
 
+pub const U8_COUNT: usize = u8::MAX as usize + 1;
+
 pub fn repl() -> LoxResult<()> {
     prompt();
 

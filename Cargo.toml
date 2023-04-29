@@ -1,2 +1,2 @@
 [workspace]
-members = ["treewalk", "bytecode", "opcode"]
+members = ["treewalk", "bytecode"]

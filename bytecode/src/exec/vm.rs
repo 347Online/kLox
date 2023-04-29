@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::repr::{
     chunk::Chunk,
     error::{LoxError, LoxResult},
@@ -7,13 +9,15 @@ use crate::repr::{
 
 use super::compiler::Compiler;
 
-const STACK_MAX: usize = 256;
+const STACK_MAX: usize = crate::U8_COUNT;
+const STACK_INIT: Value = Value::Nil;
 
 pub struct VirtualMachine {
     ip: usize,
     chunk: Chunk,
     stack: [Value; STACK_MAX],
     stack_top: usize,
+    globals: HashMap<String, Value>,
 }
 
 impl VirtualMachine {
@@ -21,8 +25,9 @@ impl VirtualMachine {
         VirtualMachine {
             ip: 0,
             chunk: Chunk::new(),
-            stack: [Value::Nil; STACK_MAX],
+            stack: [STACK_INIT; STACK_MAX],
             stack_top: 0,
+            globals: HashMap::new(),
         }
     }
 
@@ -46,7 +51,7 @@ impl VirtualMachine {
             if let Ok(instruction) = maybe_instruction {
                 macro_rules! binary {
                     ($kind:ident, $op:tt) => {{
-                        if let (Value::Number(a), Value::Number(b)) = (self.peek(1), self.peek(0)) {
+                        if let (Value::Number(a), Value::Number(b)) = self.peek_pair() {
                             self.pop_pair();
                             self.push(Value::$kind(a $op b));
                         } else {
@@ -67,11 +72,28 @@ impl VirtualMachine {
                     True => self.push(Value::Boolean(true)),
                     False => self.push(Value::Boolean(false)),
 
-                    Equal => binary!(Boolean, ==),
                     Greater => binary!(Boolean, >),
                     Less => binary!(Boolean, <),
 
-                    Add => binary!(Number, +),
+                    Equal => {
+                        let (a, b) = self.pop_pair();
+                        self.push(Value::Boolean(a == b))
+                    }
+
+                    Add => match self.peek_pair() {
+                        (Value::String(a), Value::String(b)) => {
+                            self.pop_pair();
+                            self.push(Value::String(Box::new(*a + &*b)));
+                        }
+
+                        (Value::Number(a), Value::Number(b)) => {
+                            self.pop_pair();
+                            self.push(Value::Number(a + b));
+                        }
+
+                        _ => self.error("Operands must be two numbers or two strings."),
+                    },
+
                     Subtract => binary!(Number, -),
                     Multiply => binary!(Number, *),
                     Divide => binary!(Number, /),
@@ -91,10 +113,50 @@ impl VirtualMachine {
                         }
                     }
 
-                    Return => {
-                        println!("{}", self.pop());
-                        return Ok(());
+                    Print => println!("{}", self.pop()),
+
+                    Pop => {
+                        self.pop();
                     }
+
+                    DefineGlobal => {
+                        let name = self.read_string();
+                        self.globals.insert(name, self.peek(0));
+                        self.pop();
+                    }
+
+                    GetLocal => {
+                        let slot = self.read_byte() as usize;
+                        self.push(self.stack[slot].clone());
+                    }
+
+                    SetLocal => {
+                        let slot = self.read_byte() as usize;
+                        self.stack[slot] = self.peek(0);
+                    }
+
+                    SetGlobal => {
+                        let name = self.read_string();
+
+                        if self.globals.insert(name.clone(), self.peek(0)).is_none() {
+                            self.globals.remove(&name);
+                            self.error(&format!("Undefined variable '{}'", name));
+                            return Err(LoxError::RuntimeError);
+                        }
+                    }
+
+                    GetGlobal => {
+                        let name = self.read_string();
+
+                        if let Some(value) = self.globals.get(&name) {
+                            self.push(value.clone());
+                        } else {
+                            self.error(&format!("Undefined variable '{}'.", name));
+                            return Err(LoxError::RuntimeError);
+                        }
+                    }
+
+                    Return => return Ok(()),
                 }
             }
         }
@@ -116,6 +178,13 @@ impl VirtualMachine {
             .expect("VM Read Constant Out of Bounds")
     }
 
+    fn read_string(&mut self) -> String {
+        let Value::String(name) = self.read_constant() else {
+            panic!("Failed to grab a string from constant table")
+        };
+        *name
+    }
+
     fn push(&mut self, value: Value) {
         self.stack[self.stack_top] = value;
         self.stack_top += 1
@@ -123,11 +192,7 @@ impl VirtualMachine {
 
     fn pop(&mut self) -> Value {
         self.stack_top -= 1;
-        self.stack[self.stack_top]
-    }
-
-    fn peek(&self, distance: usize) -> Value {
-        self.stack[self.stack_top - 1 - distance]
+        self.stack[self.stack_top].clone()
     }
 
     fn pop_pair(&mut self) -> (Value, Value) {
@@ -136,8 +201,15 @@ impl VirtualMachine {
         (a, b)
     }
 
+    fn peek(&self, distance: usize) -> Value {
+        self.stack[self.stack_top - 1 - distance].clone()
+    }
+
+    fn peek_pair(&self) -> (Value, Value) {
+        (self.peek(1), self.peek(0))
+    }
+
     fn error(&mut self, message: &str) {
-        // Something something variadic? 🤷‍♀️
         eprintln!("{}", message);
 
         let line = self.chunk.line(-1);
