@@ -335,6 +335,26 @@ impl Compiler {
         self.emit_constant(value);
     }
 
+    fn and(&mut self) {
+        let end_jump = self.emit_jump(Instruction::JumpIfFalse);
+        
+        self.emit(Instruction::Pop);
+        self.precedence(Precedence::And);
+
+        self.patch_jump(end_jump);
+    }
+
+    fn or(&mut self) {
+        let else_jump = self.emit_jump(Instruction::JumpIfFalse);
+        let end_jump = self.emit_jump(Instruction::Jump);
+
+        self.patch_jump(else_jump);
+        self.emit(Instruction::Pop);
+
+        self.precedence(Precedence::Or);
+        self.patch_jump(end_jump);
+    }
+
     fn variable(&mut self, assign: bool) {
         self.named_variable(self.previous.lexeme(), assign);
     }
@@ -501,6 +521,8 @@ impl Compiler {
             ParseFn::Grouping => self.grouping(),
             ParseFn::Number => self.number(),
             ParseFn::String => self.string(),
+            ParseFn::And => self.and(),
+            ParseFn::Or => self.or(),
             ParseFn::Variable => self.variable(assign),
             ParseFn::Null => (),
         }
