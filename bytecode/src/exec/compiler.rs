@@ -59,8 +59,6 @@ impl Compiler {
 
     pub fn compile(&mut self) -> LoxResult<Chunk> {
         self.advance();
-        // self.expression();
-        // self.consume(TokenType::Eof, "Expect end of expression.");
 
         while !self.catch(TokenType::Eof) {
             self.declaration();

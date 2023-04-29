@@ -210,7 +210,6 @@ impl VirtualMachine {
     }
 
     fn error(&mut self, message: &str) {
-        // Something something variadic? 🤷‍♀️
         eprintln!("{}", message);
 
         let line = self.chunk.line(-1);
