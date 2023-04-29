@@ -156,6 +156,13 @@ impl VirtualMachine {
                         }
                     }
 
+                    JumpIfFalse => {
+                        let offset = self.read_short();
+                        if !self.peek(0).truthy() {
+                            self.ip += offset as usize;
+                        }
+                    }
+
                     Return => return Ok(()),
                 }
             }
@@ -169,6 +176,13 @@ impl VirtualMachine {
             .expect("VM Instruction Pointer out of bounds");
         self.ip += 1;
         byte
+    }
+
+    fn read_short(&mut self) -> u16 {
+        self.ip += 2;
+        let addr_a = self.chunk.read(self.ip - 2).expect("VM Instruction Pointer out of bounds");
+        let addr_b = self.chunk.read(self.ip - 1).expect("VM Instruction Pointer out of bounds");
+        u16::from_be_bytes([addr_a, addr_b])
     }
 
     fn read_constant(&mut self) -> Value {

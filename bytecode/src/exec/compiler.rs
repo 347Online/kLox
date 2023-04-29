@@ -177,6 +177,8 @@ impl Compiler {
     fn statement(&mut self) {
         if self.catch(TokenType::Print) {
             self.print();
+        } else if self.catch(TokenType::If) {
+            self.if_statement();
         } else if self.catch(TokenType::LeftBrace) {
             self.begin_scope();
             self.block();
@@ -184,6 +186,17 @@ impl Compiler {
         } else {
             self.expression_statement();
         }
+    }
+
+    fn if_statement(&mut self) {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.");
+        self.expression();
+        self.consume(TokenType::RightParen, "Expect ')' after condition.");
+
+        let then_jump = self.emit_jump(Instruction::JumpIfFalse);
+        self.statement();
+
+        self.patch_jump(then_jump);
     }
 
     fn begin_scope(&mut self) {
@@ -413,6 +426,29 @@ impl Compiler {
         let constant = self.make_constant(value);
         self.emit(Instruction::Constant);
         self.emit_byte(constant);
+    }
+
+    fn emit_jump(&mut self, kind: Instruction) -> usize {
+        self.emit(kind);
+        self.emit_byte(0xff);
+        self.emit_byte(0xff);
+
+        self.chunk.len() - 2
+    }
+
+    fn patch_jump(&mut self, offset: usize) {
+        // -2 to adjust for the bytecode for the jump offset itself.
+
+        let jump = self.chunk.len() - offset - 2;
+
+        if jump > u16::MAX as usize {
+            self.error("Too much code to jump over");
+        }
+
+        let [addr_a, addr_b] = (jump as u16).to_be_bytes();
+
+        self.chunk.write_byte_at(addr_a, offset); 
+        self.chunk.write_byte_at(addr_b, offset + 1);
     }
 
     fn make_constant(&mut self, value: Value) -> u8 {

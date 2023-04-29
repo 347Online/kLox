@@ -27,6 +27,10 @@ impl Chunk {
         self.lines.push(line);
     }
 
+    pub fn write_byte_at(&mut self, byte: u8, offset: usize) {
+        self.code[offset] = byte;
+    }
+
     pub fn add_constant(&mut self, value: Value) -> usize {
         self.constants.push(value);
         self.constants.len() - 1
@@ -47,6 +51,13 @@ impl Chunk {
         } else {
             self.lines[pos as usize]
         }
+    }
+
+    pub fn len(&self) -> usize {
+        #[cfg(debug_assertions)]
+        assert_eq!(self.code.len(), self.lines.len(), "Chunk Error — Size mismatch");
+
+        self.code.len()
     }
 }
 

@@ -30,6 +30,8 @@ pub enum Instruction {
     SetGlobal,
     GetGlobal,
 
+    JumpIfFalse,
+
     Return,
 }
 
