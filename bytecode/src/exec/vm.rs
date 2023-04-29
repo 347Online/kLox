@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use crate::repr::{
+use crate::{repr::{
     chunk::Chunk,
     error::{LoxError, LoxResult},
     opcode::Instruction,
     value::Value,
-};
+}};
 
 use super::compiler::Compiler;
 
-const STACK_MAX: usize = 256;
+const STACK_MAX: usize = crate::U8_COUNT;
 const STACK_INIT: Value = Value::Nil;
 
 pub struct VirtualMachine {
@@ -123,6 +123,16 @@ impl VirtualMachine {
                         let name = self.read_string();
                         self.globals.insert(name, self.peek(0));
                         self.pop();
+                    }
+
+                    GetLocal => {
+                        let slot = self.read_byte() as usize;
+                        self.push(self.stack[slot].clone());
+                    }
+
+                    SetLocal => {
+                        let slot = self.read_byte() as usize;
+                        self.stack[slot] = self.peek(0);
                     }
 
                     SetGlobal => {
