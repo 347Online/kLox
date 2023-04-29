@@ -9,15 +9,15 @@ use crate::repr::{
 
 use super::scanner::Scanner;
 
-struct Local {
-    name: Option<String>,
-    depth: Option<usize>,
+struct LocalSlot {
+    name: String,
+    depth: isize,
 }
 
 const LOCALS_MAX: usize = crate::U8_COUNT;
-const LOCAL_INIT: Local = Local {
-    name: None,
-    depth: None,
+const LOCAL_INIT: LocalSlot = LocalSlot {
+    name: String::new(),
+    depth: -2,
 };
 
 pub struct Compiler {
@@ -30,9 +30,9 @@ pub struct Compiler {
 
     chunk: Chunk,
 
+    locals: [LocalSlot; LOCALS_MAX],
     local_count: usize,
-    scope_depth: usize,
-    locals: [Local; LOCALS_MAX],
+    scope_depth: isize,
 }
 
 impl Compiler {
@@ -51,9 +51,9 @@ impl Compiler {
 
             chunk: Chunk::new(),
 
+            locals: [LOCAL_INIT; LOCALS_MAX],
             local_count: 0,
             scope_depth: 0,
-            locals: [LOCAL_INIT; LOCALS_MAX],
         }
     }
 
@@ -154,20 +154,17 @@ impl Compiler {
         self.consume(TokenType::Identifier, message);
 
         self.declare_variable();
-        if self.scope_depth > 0 {
-            self.initialize();
-            return 0;
-        }
 
-        self.identifier_constant(self.previous.lexeme())
+        self.indentifier_constant(self.previous.lexeme())
     }
 
-    fn identifier_constant(&mut self, name: String) -> u8 {
+    fn indentifier_constant(&mut self, name: String) -> u8 {
         self.make_constant(Value::String(Box::new(name)))
     }
 
     fn define_variable(&mut self, global: u8) {
         if self.scope_depth > 0 {
+            self.initialize();
             return;
         }
 
@@ -175,36 +172,8 @@ impl Compiler {
         self.emit_byte(global);
     }
 
-    fn declare_variable(&mut self) {
-        if self.scope_depth == 0 {
-            return;
-        }
-
-        let name = self.previous.lexeme();
-
-        for i in (0..self.local_count).rev() {
-            let local = &self.locals[i];
-            if let Some(depth) = local.depth {
-                if depth < self.scope_depth {
-                    break;
-                }
-            }
-
-            if Some(name.clone()) == local.name {
-                self.error("Already a variable with this name in this scope.");
-            }
-        }
-
-        self.add_local(name)
-    }
-
-    fn add_local(&mut self, name: String) {
-        if self.local_count == LOCALS_MAX {
-            self.error("Too many local variables in function.");
-        }
-
-        self.locals[self.local_count].name = Some(name);
-        self.local_count += 1;
+    fn initialize(&mut self) {
+        self.locals[self.local_count - 1].depth = self.scope_depth;
     }
 
     fn statement(&mut self) {
@@ -219,6 +188,19 @@ impl Compiler {
         }
     }
 
+    fn begin_scope(&mut self) {
+        self.scope_depth += 1;
+    }
+
+    fn end_scope(&mut self) {
+        self.scope_depth -= 1;
+
+        while self.local_count > 0 && self.locals[self.local_count - 1].depth > self.scope_depth {
+            self.emit(Instruction::Pop);
+            self.local_count -= 1;
+        }
+    }
+
     fn block(&mut self) {
         while !self.check(TokenType::RightBrace) && !self.check(TokenType::Eof) {
             self.declaration();
@@ -227,24 +209,53 @@ impl Compiler {
         self.consume(TokenType::RightBrace, "Expect '}' after block.");
     }
 
-    fn begin_scope(&mut self) {
-        self.scope_depth += 1;
-    }
+    fn declare_variable(&mut self) {
+        if self.scope_depth == 0 {
+            return;
+        }
 
-    fn end_scope(&mut self) {
-        self.scope_depth -= 1;
+        let name = self.previous.lexeme();
 
-        while let Local {
-            name: Some(name),
-            depth: Some(depth),
-        } = &self.locals[self.local_count - 1]
-        {
-            if self.scope_depth <= *depth {
+        for i in (0..self.local_count).rev() {
+            let local = &self.locals[i];
+
+            if local.depth != -1 && local.depth < self.scope_depth {
                 break;
             }
-            self.emit(Instruction::Pop);
-            self.local_count -= 1;
+
+            if name == local.name {
+                self.error("Already a variable with this name in this scope.");
+            }
         }
+
+        self.add_local(name);
+    }
+
+    fn add_local(&mut self, name: String) {
+        if self.local_count == LOCALS_MAX {
+            self.error("Too many local variables in function.");
+            return;
+        }
+
+        let local = &mut self.locals[self.local_count];
+        self.local_count += 1;
+
+        local.name = name;
+        local.depth = -1;
+    }
+
+    fn resolve_local(&mut self, name: &String) -> Option<u8> {
+        for i in (0..self.local_count).rev() {
+            let local = &self.locals[i];
+            if name == &local.name {
+                if local.depth == -1 {
+                    self.error("Can't read local variable in its own initializer.");
+                }
+                return Some(i as u8);
+            }
+        }
+
+        None
     }
 
     fn synchronize(&mut self) {
@@ -309,11 +320,17 @@ impl Compiler {
     }
 
     fn named_variable(&mut self, name: String, assign: bool) {
-        let (arg, get_op, set_op) = if let Some(index) = self.resolve_local(name.clone()) {
-            (index, Instruction::GetLocal, Instruction::SetLocal)
+        let get_op: Instruction;
+        let set_op: Instruction;
+
+        let arg = if let Some(byte) = self.resolve_local(&name) {
+            get_op = Instruction::GetLocal;
+            set_op = Instruction::SetLocal;
+            byte
         } else {
-            let index = self.identifier_constant(name);
-            (index, Instruction::GetGlobal, Instruction::SetGlobal)
+            get_op = Instruction::GetGlobal;
+            set_op = Instruction::SetGlobal;
+            self.indentifier_constant(name)
         };
 
         if assign && self.catch(TokenType::Equal) {
@@ -324,44 +341,6 @@ impl Compiler {
             self.emit(get_op);
             self.emit_byte(arg);
         }
-    }
-
-    // fn resolve_local(&mut self, name: &String) -> Option<u8> {
-    //     for i in (0..self.local_count).rev() {
-    //         if let Local {
-    //             name: Some(local),
-    //             depth: maybe_depth
-    //         } = &self.locals[i]
-    //         {
-    //             if local == name {
-    //                 if maybe_depth.is_none() {
-    //                     self.error("Can't read local variable in its own initializer.");
-    //                 }
-    //                 return Some(i as u8);
-    //             }
-    //         }
-    //     }
-
-    //     None
-    // }
-
-    fn resolve_local(&mut self, name: String) -> Option<u8> {
-        let comparison = Some(name);
-        for i in (0..self.local_count).rev() {
-            let local = &self.locals[i];
-            if local.name == comparison {
-                if local.depth.is_none() {
-                    self.error("Can't read local variable in its own initializer.");
-                }
-                return Some(i as u8);
-            }
-        }
-
-        None
-    }
-
-    fn initialize(&mut self) {
-        self.locals[self.local_count - 1].depth = Some(self.scope_depth);
     }
 
     fn literal(&mut self) {
