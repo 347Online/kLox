@@ -20,7 +20,7 @@ impl Display for Value {
             Value::Number(number) => number.to_string(),
             Value::Boolean(boolean) => boolean.to_string(),
             Value::Nil => String::from("nil"),
-            Value::String(string) => format!("\"{}\"", *string),
+            Value::String(boxed_string) => boxed_string.to_string(),
         };
 
         write!(f, "{}", repr)

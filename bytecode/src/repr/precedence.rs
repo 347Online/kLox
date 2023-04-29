@@ -44,6 +44,8 @@ pub enum ParseFn {
     Number,
     String,
     Variable,
+    And,
+    Or,
     Null,
 }
 
@@ -91,6 +93,9 @@ impl From<TokenType> for Rule {
             String => (ParseFn::String, ParseFn::Null, Precedence::Min),
 
             Nil | True | False => (ParseFn::Literal, ParseFn::Null, Precedence::Min),
+
+            And => (ParseFn::Null, ParseFn::And, Precedence::And),
+            Or => (ParseFn::Null, ParseFn::Or, Precedence::Or),
 
             _ => (ParseFn::Null, ParseFn::Null, Precedence::Min),
         };
