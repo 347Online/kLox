@@ -156,6 +156,10 @@ impl VirtualMachine {
                         }
                     }
 
+                    Jump => {
+                        self.ip += self.read_short() as usize;
+                    }
+
                     JumpIfFalse => {
                         let offset = self.read_short();
                         if !self.peek(0).truthy() {

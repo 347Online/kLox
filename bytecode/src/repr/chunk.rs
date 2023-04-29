@@ -59,6 +59,10 @@ impl Chunk {
 
         self.code.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl Default for Chunk {
@@ -97,7 +101,7 @@ impl Chunk {
                     Constant | DefineGlobal | SetGlobal | GetGlobal => {
                         let index = self.code[offset + 1];
                         let constant = self.constants[index as usize].clone();
-                        println!("{:<16?} {:>4} '{}'", self, index, constant);
+                        println!("{:<16?} {:>4} '{}'", instruction, index, constant);
                         offset + 2
                     }
 
@@ -105,6 +109,16 @@ impl Chunk {
                         let slot = self.code[offset + 1];
                         println!("{:<16?} {:>4}", self, slot);
                         offset + 2
+                    }
+
+                    Jump | JumpIfFalse => {
+                        let addr_a = self.code[offset + 1];
+                        let addr_b = self.code[offset + 2];
+
+                        let jump = u16::from_be_bytes([addr_a, addr_b]);
+
+                        println!("{:<16?} {:>4} -> {}", instruction, offset, offset + 3 + jump as usize);
+                        offset + 3
                     }
 
                     _ => {

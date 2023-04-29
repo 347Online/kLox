@@ -196,7 +196,16 @@ impl Compiler {
         let then_jump = self.emit_jump(Instruction::JumpIfFalse);
         self.statement();
 
+        let else_jump = self.emit_jump(Instruction::Jump);
+
         self.patch_jump(then_jump);
+        self.emit(Instruction::Pop);
+
+        if self.catch(TokenType::Else) {
+            self.statement();
+        }
+
+        self.patch_jump(else_jump);
     }
 
     fn begin_scope(&mut self) {
