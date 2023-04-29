@@ -90,6 +90,12 @@ impl Chunk {
                         offset + 2
                     }
 
+                    GetLocal | SetLocal => {
+                        let slot = self.code[offset + 1];
+                        println!("{:<16?} {:>4}", self, slot);
+                        offset + 2
+                    }
+
                     _ => {
                         println!("{:?}", instruction);
                         offset + 1
