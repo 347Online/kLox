@@ -23,13 +23,13 @@ pub enum Instruction {
 
     Print,
     Pop,
-    
+
     DefineGlobal,
     GetLocal,
     SetLocal,
     SetGlobal,
     GetGlobal,
-    
+
     Return,
 }
 

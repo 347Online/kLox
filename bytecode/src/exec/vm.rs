@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{repr::{
+use crate::repr::{
     chunk::Chunk,
     error::{LoxError, LoxResult},
     opcode::Instruction,
     value::Value,
-}};
+};
 
 use super::compiler::Compiler;
 
@@ -152,7 +152,7 @@ impl VirtualMachine {
                             self.push(value.clone());
                         } else {
                             self.error(&format!("Undefined variable '{}'.", name));
-                            return Err(LoxError::RuntimeError)
+                            return Err(LoxError::RuntimeError);
                         }
                     }
 
